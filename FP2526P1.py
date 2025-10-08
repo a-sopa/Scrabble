@@ -28,11 +28,11 @@ def cria_conjunto(let, occ): #3.1.1
         conj_letras -> dicionário
     """
     #Validação dos argumentos
-    if not type(let) == tuple or not type(occ) or len(let) != len(occ):
+    if not type(let) == tuple or not type(occ) == tuple or len(let) != len(occ):
         raise ValueError('cria_conjunto: argumentos inválidos')
     
     for i in range(len(occ)):
-        if not type(occ[i]) == int or occ[i] <= 0 or not type(let[i]) == str or len(let[i]) != 1:
+        if not type(occ[i]) == int or occ[i] <= 0 or let[i] not in LETRAS or not type(let[i]) == str or len(let[i]) != 1:
             raise ValueError('cria_conjunto: argumentos inválidos')
     
     conj_letras = {}
@@ -371,9 +371,16 @@ def ordena_letras(conj_letras): #Função auxiliar
 
 
 def cria_jogador(ordem, pontos, conj_letras): #3.3.1
-    if ordem > 4 or ordem < 1 or not type(ordem) == int or not type(pontos) == int or pontos < 0:
+    if ordem > 4 or ordem < 1 or not type(ordem) == int or not type(pontos) == int or pontos < 0 or not type(conj_letras) == dict:
         raise ValueError('cria_jogador: argumentos inválidos')
     
+    for l in conj_letras.keys():
+        if not type(l) == str or l not in LETRAS:
+            raise ValueError('cria_jogador: argumentos inválidos')
+
+    for o in conj_letras.values():
+        if not type(o) == int or o <= 0:
+            raise ValueError('cria_jogador: argumentos inválidos')
 
     jogador = {'id': ordem, 'pontos': pontos, 'letras':conj_letras}
     return jogador
@@ -544,25 +551,16 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
                 continue
 
             #Retirar as letras do baralho do jogador
-            for l in jogada[1:]:
+            for l in letras_para_troca:
                 jog['letras'][l] -= 1
                 letras_troca.append(l)
                 if jog['letras'][l] == 0:
                     del jog['letras'][l]
-            
+                      
             #Adicionar as letras à pilha
             for i in range(len(letras_troca)): 
                 distribui_letra(pilha, jog)
             
-            #Reordenar o baralho do jogador
-            """letras_ordenadas = ordena_letras(jog['letras'])
-            novo_conj = {}
-            for letra in letras_ordenadas:
-                if letra in novo_conj:
-                    novo_conj[letra] += 1
-                else:
-                    novo_conj[letra] = 1"""
-
             primeira = False                   
             return True
         
@@ -571,15 +569,15 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
             if len(jogada) != 5:
                 continue
 
-            linha = jogada[1]
-            coluna = jogada[2]
+            linha_str = jogada[1]
+            coluna_str = jogada[2]
 
-            if not linha.isdigit() or not coluna.isdigit(): #Verificar se a linha e a coluna são dígitos
+            if not linha_str.isdigit() or not coluna_str.isdigit(): #Verificar se a linha e a coluna são dígitos
                 continue
 
             #Converter ambos para inteiro
-            linha = int(linha)
-            coluna = int(coluna)
+            linha = int(linha_str)
+            coluna = int(coluna_str)
 
             if n < linha or linha < 0 or n < coluna or coluna < 0 or not type(coluna) == int or not type(linha) == int: #Verificar se estão dentro do limite do tabuleiro
                 continue
@@ -587,37 +585,37 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
             casa = (linha, coluna) #Criar o tuplo casa
 
             direcao = jogada[3]
-            if direcao != 'H' and direcao != 'V':
+            if direcao not in ('H', 'V'):
                 continue
 
             palavra = jogada[4]
             tamanho_palavra = len(palavra)
 
-            if direcao == 'H':
-                if tamanho_palavra + coluna > 15:
-                    continue
-            elif direcao == 'V':
-                if tamanho_palavra + linha > 15:
-                    continue
+            if direcao == 'H' and tamanho_palavra + coluna > 15:
+                continue
+            elif direcao == 'V' and tamanho_palavra + linha > 15:
+                continue
 
             padrao = ''.join(obtem_sequencia(tab, casa, direcao, tamanho_palavra)) #Obter o padrão
             
             if not testa_palavra_padrao(palavra, padrao, jog['letras']):
-                letras_usadas = joga_palavra(tab, palavra, casa, direcao, jog['letras'], primeira)
-                if letras_usadas == ():
-                    continue
+                continue
 
-                for letra in palavra:
-                    jog['pontos'] += pontos[letra]
-                
-                for let in letras_usadas:
-                    if let in jog['letras']:
-                        jog['letras'][let] -= 1
-                        if jog['letras'][let] == 0:
-                            del jog['letras'][let]
+            letras_usadas = joga_palavra(tab, palavra, casa, direcao, jog['letras'], primeira)
+            if letras_usadas == ():
+                continue
 
-                for i in range(len(letras_usadas)):
-                    distribui_letra(pilha, jog)
+            for letra in palavra:
+                jog['pontos'] += pontos[letra]
+            
+            for let in letras_usadas:
+                if let in jog['letras']:
+                    jog['letras'][let] -= 1
+                    if jog['letras'][let] == 0:
+                        del jog['letras'][let]
+
+            for i in range(len(letras_usadas)):
+                distribui_letra(pilha, jog)
 
             primeira = False
             return True
@@ -638,14 +636,17 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
     #Verificação dos parâmetros
     if not type(jogadores) == int or jogadores < 2 or jogadores > 4:
         raise ValueError('scrabble: argumentos inválidos')
-    if not type(saco) == dict or len(saco) == 0:
+    if not type(saco) == dict or len(saco) <= 0:
         raise ValueError('scrabble: argumentos inválidos')
     if not type(pontos) == dict:
         raise ValueError('scrabble: argumentos inválidos')
-    if not type(seed) == int or seed < 0:
+    if not type(seed) == int or seed <= 0:
         raise ValueError('scrabble: argumentos inválidos')
     for L in LETRAS: 
-        if L not in pontos:
+        if L not in pontos or not type(L) == str:
+            raise ValueError('scrabble: argumentos inválidos')
+    for p in pontos.values():
+        if not type(p) == int or p <= 0:
             raise ValueError('scrabble: argumentos inválidos')
 
     #Preparação do Jogo
@@ -682,17 +683,17 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
             if resultado == False:
                 passes += 1
 
-        #Final do Jogo
-        tuplo_final = ()
-        if passes >= jogadores: #Se todos os jogadores passarem a sua vez termina
-            for jog in lista_jogadores:
-                tuplo_final = tuplo_final + (jog['pontos'],)
-                return tuplo_final 
+            #Final do Jogo
+            tuplo_final = ()
+            if passes >= jogadores: #Se todos os jogadores passarem a sua vez termina
+                for jog in lista_jogadores:
+                    tuplo_final = tuplo_final + (jog['pontos'],)
+                    #return tuplo_final 
 
-        baralho_jogador = criar_lista_letras(jogador['letras'])
-        if len(pilha) == 0 and len(baralho_jogador) == 0:
-            for jog in lista_jogadores:
-                tuplo_final = tuplo_final + (jog['pontos'],)
-            return tuplo_final 
-                
+            baralho_jogador = criar_lista_letras(jogador['letras'])
+            if len(pilha) == 0 and len(baralho_jogador) == 0:
+                for jog in lista_jogadores:
+                    tuplo_final = tuplo_final + (jog['pontos'],)
+                return tuplo_final 
+                    
     
