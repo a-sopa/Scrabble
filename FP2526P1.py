@@ -150,7 +150,7 @@ def testa_palavra_padrao(palavra, padrao, conj): #3.1.5
             lista_interna.remove(let)
         elif pad != let:
             return False
-               
+            
     return True
 
 #------------------------------------------------------------------------
@@ -305,14 +305,14 @@ def cabecalho(n):
 
     return linha_dezenas, linha_unidades
 
- 
+
 def linha_para_str(numero_linha, conteudo_linha):
     """
     Formata uma linha do tabuleiro:
     - numero_linha: inteiro (1..n)
     - conteudo_linha: lista de n caracteres (ex: ['.', '.', 'A', ...])
     Resultado: string formatada, ex:
-      " 1 | . . . A . . . |"
+    " 1 | . . . A . . . |"
     """
 
     linha_conteudos = ' '.join(conteudo_linha)
@@ -353,7 +353,7 @@ def tabuleiro_para_str(tab): #3.2.7
     tabuleiro = '\n'.join(linhas)
 
     return tabuleiro
-   
+
 
 #-----------------------------------------------------------
 #3.3- Representação e Funções de Jogador
@@ -466,7 +466,7 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1 EST
     
     conj_temp = conj_letras.copy() #Criar um conjunto temporário para não alterar destrutivamente a lista original
     letras_usadas = [] #Criar uma lista para armazenar as letras já utilizadas
-   
+
     padrao = ''.join(obtem_sequencia(tab, casa, direcao, tamanho_palavra))
     if primeira == False:
         contador = 0
@@ -514,7 +514,7 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
     while True:
         letras_troca = []
         #Pedir uma jogada ao utilizador
-        entrada = input(f'Jogada J{jog['id']}: ')
+        entrada = input(f'Jogada J{jog["id"]}: ')
         #Separar os vários passos da jogada numa lista
         jogada = entrada.split(' ') 
 
@@ -530,7 +530,7 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
         elif jogada[0] == 'T':
             #Verificação
             letras_para_troca = jogada[1:]
-           
+        
             if len(letras_para_troca) == 0 or len(letras_para_troca) > 7:
                 continue
         
