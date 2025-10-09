@@ -18,6 +18,26 @@ LETRAS = ['A','B','C','Ç','D','E','F','G','H','I','J','L','M','N','O',
 'P','Q','R','S','T','U','V','X','Z']
 DIMENSOES = 15
 
+def ordena_letras(conj_letras): #Função auxiliar
+    """
+    Função auxliar que ordena, em ordem alfabética, uma lista de letras 
+
+    Argumentos:
+        conj_letras -> dicionário ou lista
+    Return:
+        lista_ordenada -> lista
+    """
+    if not type(conj_letras) == list:
+        lista_letras = criar_lista_letras(conj_letras)
+    else:
+        lista_letras = conj_letras
+    
+    lista_ordenada = []
+    for letra in LETRAS:
+        lista_ordenada.extend([letra]*lista_letras.count(letra))
+    return lista_ordenada
+
+
 def cria_conjunto(let, occ): #3.1.1 
     """
     Recebe letras e as respetivas ocorrências e devolve um conjunto de letras definido por um dicionário
@@ -117,11 +137,15 @@ def baralha_conjunto(conj, estado): #3.1.4
     - conjunto letras x inteiro -> lista
     Argumentos:
         conj -> dicionário | estado -> inteiro
+    Return:
+        lista -> lista
     """
-    lista = criar_lista_letras(conj)
-    permuta_letras(lista,estado)
 
-    return lista
+    lista = criar_lista_letras(conj) #Criar uma lista do conjunto
+    lista_ordenada = ordena_letras(lista)
+    permuta_letras(lista_ordenada,estado)
+
+    return lista_ordenada
 
 
 def testa_palavra_padrao(palavra, padrao, conj): #3.1.5 
@@ -390,25 +414,6 @@ def tabuleiro_para_str(tab): #3.2.7
 #-----------------------------------------------------------
 #3.3- Representação e Funções de Jogador
 
-def ordena_letras(conj_letras): #Função auxiliar
-    """
-    Função auxliar que ordena, em ordem alfabética, uma lista de letras 
-
-    Argumentos:
-        conj_letras -> dicionário ou lista
-    Return:
-        lista_ordenada -> lista
-    """
-    if not type(conj_letras) == list:
-        lista_letras = criar_lista_letras(conj_letras)
-    else:
-        lista_letras = conj_letras
-    
-    lista_ordenada = []
-    for letra in LETRAS:
-        lista_ordenada.extend([letra]*lista_letras.count(letra))
-    return lista_ordenada
-
 
 def cria_jogador(ordem, pontos, conj_letras): #3.3.1
     """
@@ -430,6 +435,11 @@ def cria_jogador(ordem, pontos, conj_letras): #3.3.1
     for o in conj_letras.values():
         if not type(o) == int or o <= 0:
             raise ValueError('cria_jogador: argumentos inválidos')
+
+    lista_letras = criar_lista_letras(conj_letras)
+    if len(lista_letras) > 7:
+        raise ValueError('cria_jogador: argumentos inválidos')
+
 
     jogador = {'id': ordem, 'pontos': pontos, 'letras':conj_letras}
     return jogador
@@ -700,11 +710,17 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
     Return:
         tuplo_final -> tuplo (Pontuação final dos jogadores)
     Raises:
+        ValueError -> 'scrabble: argumentos inválidos' se:
+            - jogadores não for um inteiro entre 2 e 4;
+            - saco não for um dicionário ou estiver vazio;
+            - pontos não for um dicionário e se os seus valores não forem inteiros
+            - seed não for um inteiro positivo;
+        
     """
     #Verificação dos parâmetros
     if not type(jogadores) == int or jogadores < 2 or jogadores > 4:
         raise ValueError('scrabble: argumentos inválidos')
-    if not type(saco) == dict or len(saco) <= 0:
+    if not type(saco) == dict or len(saco) == 0:
         raise ValueError('scrabble: argumentos inválidos')
     if not type(pontos) == dict:
         raise ValueError('scrabble: argumentos inválidos')
