@@ -548,6 +548,8 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1
     
     #Verificar se a primeira palavra jogada interseta o centro do tabuleiro
     if primeira:
+        if tamanho_palavra < 2: #Testar se o comprimento da primeira palavra é maior do que 1
+            return()
         centro = (len(tab[0]) + 1) // 2 
         coordenadas_centro = (centro, centro) #Definir o par de coordenadas do centro
         passou_pelo_centro = False 
@@ -613,8 +615,6 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
     Return:
         False -> bool (se a jogada for Passar) | True -> bool (se a jogada for Jogar ou Trocar)
     """
-
-    DIMENSOES = 15
     while True:
         letras_troca = []
         #Pedir uma jogada ao utilizador
