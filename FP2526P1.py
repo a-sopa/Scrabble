@@ -47,7 +47,13 @@ def cria_conjunto(let, occ): #3.1.1
     Return:
         conj_letras -> dicionário
     Raises:
-        ValueError: Se os argumentos forem inválidos
+        ValueError -> 'cria_conjunto: argumentos inválidos' se:
+            - let ou occ não forem tuplos;
+            - let e occ não tiverem o mesmo comprimento;
+            - let tiver letras repetidas;
+            - occ tiver valores não inteiros ou menores ou iguais a 0
+            - let tiver elementos não pertencentes ao abecedário português
+            - let tiver elementos que não sejam strings de comprimento 1
     """
     #Validação dos argumentos
     if not type(let) == tuple or not type(occ) == tuple or len(let) != len(occ) or len(set(let)) != len(let):
@@ -160,7 +166,7 @@ def testa_palavra_padrao(palavra, padrao, conj): #3.1.5
         Argumentos:
             palavra -> string | padrao -> string | conj -> dicionário 
         Return:
-            Valor Bool 
+            True -> bool (se for válida) | False -> bool (se for inválida) 
         
     """
     lista_letras = criar_lista_letras(conj)
@@ -192,7 +198,6 @@ def cria_tabuleiro(): #3.2.1
         tab -> Tabuleiro
     #
     """
-    DIMENSOES = 15
     tab = []
     for i in range(DIMENSOES):
         linha = ['.'] * DIMENSOES
@@ -211,6 +216,10 @@ def cria_casa(l,c): #3.2.2
         l -> (linha) inteiro | c -> (coluna) inteiro
     Return:
         casa -> tuplo
+    Raises:
+        ValueError: 'cria_casa: argumentos inválidos' se:
+            - l e c não forem inteiros
+            - l e c forem menores que 1 ou maiores que 15
     """
     #Validação de erros
     if not type(l) == int or not type(c) == int or l < 1 or l > 15 or c < 1 or c > 15:
@@ -258,6 +267,9 @@ def obtem_sequencia(tab, casa, direcao, tamanho): #3.2.5
         tab -> tabuleiro | casa -> tuplo | direcao -> 'H' ou 'V' | tamanho -> inteiro
     Return:
         string -> sequência de letras ou pontos
+    Raises:
+        ValueError: 'obtem_sequencia: direção inválida' se:
+            - A direção é diferente de 'H' ou 'V'
     """
     l, c = casa[0] - 1, casa[1] - 1
     sequencia = []
@@ -423,6 +435,14 @@ def cria_jogador(ordem, pontos, conj_letras): #3.3.1
         ordem -> inteiro | pontos -> inteiro | conj_letras -> conjunto de letras
     Return:
         jogador -> dicionário com chaves: 'id', 'pontos' e 'letras'
+    Raises:
+        ValueError -> 'cria_jogador: argumentos inválidos' se:
+            - ordem não for um inteiro entre 1 e 4
+            - pontos não for um inteiro maior ou igual a 0
+            - conj_letras não for um dicionário
+            - conj_letras contiver letras inválidas ou não pertencentes ao abecedário português
+            - conj_letras contiver ocorrências não inteiras ou menores ou iguais a 0
+            - o total de letras exceder 7
     """
     
     if ordem > 4 or ordem < 1 or not type(ordem) == int or not type(pontos) == int or pontos < 0 or not type(conj_letras) == dict:
@@ -715,7 +735,7 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
             - saco não for um dicionário ou estiver vazio;
             - pontos não for um dicionário e se os seus valores não forem inteiros
             - seed não for um inteiro positivo;
-            - as letras nos dicionários (saco e pontos) não estiverem no abcedário português (LETRAS)
+            - as letras nos dicionários (saco e pontos) não estiverem no abecedário português (LETRAS)
         
     """
     #Verificação dos parâmetros
@@ -727,8 +747,11 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
         raise ValueError('scrabble: argumentos inválidos')
     if not type(seed) == int or seed <= 0:
         raise ValueError('scrabble: argumentos inválidos')
-    for L in LETRAS: 
-        if L not in pontos or L not in saco or not type(L) == str:
+    for letra in saco:
+        if letra not in LETRAS:
+            raise ValueError('scrabble: argumentos inválidos')
+    for letra in pontos:
+        if letra not in LETRAS:
             raise ValueError('scrabble: argumentos inválidos')
     for p in pontos.values():
         if not type(p) == int or p <= 0:
@@ -736,7 +759,7 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
     for s in saco.values():
         if not type(s) == int or s < 0:
             raise ValueError('scrabble: argumentos inválidos')
-
+    
     #Preparação do Jogo
     tab = cria_tabuleiro()
     pilha = baralha_conjunto(saco, seed)
