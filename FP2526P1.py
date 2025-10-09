@@ -131,19 +131,19 @@ def criar_lista_letras(conj): #Função Auxiliar
 
 def baralha_conjunto(conj, estado): #3.1.4
     """ 
-    Recebe um conjunto e um estado e devolve uma lista baralhada com todas as letras
+    Recebe um conjunto e um estado e devolve uma lista baralhada pseudo aleatoriamente com todas as letras
     contidas no conjunto de letras
 
     - conjunto letras x inteiro -> lista
     Argumentos:
         conj -> dicionário | estado -> inteiro
     Return:
-        lista -> lista
+        lista_ordenada -> lista
     """
 
     lista = criar_lista_letras(conj) #Criar uma lista do conjunto
-    lista_ordenada = ordena_letras(lista)
-    permuta_letras(lista_ordenada,estado)
+    lista_ordenada = ordena_letras(lista) #Ordenar a lista 
+    permuta_letras(lista_ordenada,estado) #Baralhar a lista
 
     return lista_ordenada
 
@@ -715,6 +715,7 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
             - saco não for um dicionário ou estiver vazio;
             - pontos não for um dicionário e se os seus valores não forem inteiros
             - seed não for um inteiro positivo;
+            - as letras nos dicionários (saco e pontos) não estiverem no abcedário português (LETRAS)
         
     """
     #Verificação dos parâmetros
@@ -727,10 +728,13 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
     if not type(seed) == int or seed <= 0:
         raise ValueError('scrabble: argumentos inválidos')
     for L in LETRAS: 
-        if L not in pontos or not type(L) == str:
+        if L not in pontos or L not in saco or not type(L) == str:
             raise ValueError('scrabble: argumentos inválidos')
     for p in pontos.values():
         if not type(p) == int or p <= 0:
+            raise ValueError('scrabble: argumentos inválidos')
+    for s in saco.values():
+        if not type(s) == int or s < 0:
             raise ValueError('scrabble: argumentos inválidos')
 
     #Preparação do Jogo
