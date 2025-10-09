@@ -743,7 +743,7 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
         raise ValueError('scrabble: argumentos inválidos')
     if not type(saco) == dict or len(saco) == 0:
         raise ValueError('scrabble: argumentos inválidos')
-    if not type(pontos) == dict:
+    if not type(pontos) == dict or len(pontos) != len(LETRAS):
         raise ValueError('scrabble: argumentos inválidos')
     if not type(seed) == int or seed <= 0:
         raise ValueError('scrabble: argumentos inválidos')
