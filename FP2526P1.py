@@ -16,19 +16,21 @@
 
 LETRAS = ['A','B','C','Ç','D','E','F','G','H','I','J','L','M','N','O',
 'P','Q','R','S','T','U','V','X','Z']
+DIMENSOES = 15
 
 def cria_conjunto(let, occ): #3.1.1 
     """
     Recebe letras e as respetivas ocorrências e devolve um conjunto de letras definido por um dicionário
     
-    - tuplo x tuplo -> conjunto de letras (Dicionário)
     Argumentos:
         let -> tuplo | occ -> tuplo
     Return:
         conj_letras -> dicionário
+    Raises:
+        ValueError: Se os argumentos forem inválidos
     """
     #Validação dos argumentos
-    if not type(let) == tuple or not type(occ) == tuple or len(let) != len(occ):
+    if not type(let) == tuple or not type(occ) == tuple or len(let) != len(occ) or len(set(let)) != len(let):
         raise ValueError('cria_conjunto: argumentos inválidos')
     
     for i in range(len(occ)):
@@ -44,7 +46,7 @@ def cria_conjunto(let, occ): #3.1.1
 
 def gera_numero_aleatorio(estado): #3.1.2
     """
-    Recebe um estado e devolve um número pseudoaleatório utilizando esse mesmo número.
+    Recebe um estado e devolve um número pseudoaleatório baseado no estado inicial.
 
     - inteiro -> inteiro
     Argumentos:
@@ -81,7 +83,7 @@ def permuta_letras(letras, estado): #3.1.3
     return
 
 
-def criar_lista_letras(conj):  
+def criar_lista_letras(conj): #Função Auxiliar
     """
     Função para auxiliar a criação de uma lista com todas as letras disponíveis.
     Recebe um conjunto em forma de dicionário e transforma-o numa lista
@@ -166,10 +168,10 @@ def cria_tabuleiro(): #3.2.1
         tab -> Tabuleiro
     #
     """
-    n = 15
+    DIMENSOES = 15
     tab = []
-    for i in range(n):
-        linha = ['.'] * n
+    for i in range(DIMENSOES):
+        linha = ['.'] * DIMENSOES
         tab.append(linha)
 
     return tab
@@ -226,8 +228,12 @@ def insere_letra(tab, casa, letra): #3.2.4
 
 def obtem_sequencia(tab, casa, direcao, tamanho): #3.2.5 
     """
-    docstrings
-    - tabuleiro x casa x string x int -> string
+    Obtém uma sequência de caracteres a partir de uma casa numa direção e retorna a mesma string.
+
+    Argumentos:
+        tab -> tabuleiro | casa -> tuplo | direcao -> 'H' ou 'V' | tamanho -> inteiro
+    Return:
+        string -> sequência de letras ou pontos
     """
     l, c = casa[0] - 1, casa[1] - 1
     sequencia = []
@@ -246,7 +252,13 @@ def obtem_sequencia(tab, casa, direcao, tamanho): #3.2.5
 
 def insere_palavra(tab,casa,direcao,palavra): #3.2.6
     """
-    docstrings
+    Recebe um tabuleiro, uma casa pertencente ao mesmo e uma palavra, e insere a palavra na casa indicada, através da função insere_letra (3.2.4).
+    Esta função modifica destrutivamente o tabuleiro.
+
+    Argumentos:
+        tab -> tabuleiro | casa -> tuplo | direcao -> string ('H' ou 'V') | palavra -> string
+    Return:
+        tabuleiro -> tabuleiro (com a palavra)
     """
     linha = casa[0]
     coluna = casa[1]
@@ -262,27 +274,37 @@ def insere_palavra(tab,casa,direcao,palavra): #3.2.6
             linha += 1
     return tab
 
-#3.2.7 Funções Auxiliares para tabuleiro_para_str n = 15
+#3.2.7 Funções Auxiliares para tabuleiro_para_str numero_linhas = 15
 
-def borda_superior_inferior(n):
+def borda_superior_inferior(DIMENSOES):
     """
-    Constrói a borda inferior/superior do tabuleiro '+---+'
-    O comprimento da borda depende
+    Constrói a borda inferior/superior do tabuleiro '+--...--+'
+    O comprimento da borda depende das dimensões do tabuleiro
+
+    Argumentos:
+        DIMENSOES -> inteiro (tamanho do tab)
+    Return:
+        borda -> string
     """
     espaco = '   '
-    borda = espaco + '+' + '-'*(2*n + 1)+ '+' # O número de '-' é igual ao dobro do comprimento do tabuleiro, menos o caracter final
+    borda = espaco + '+' + '-'*(2*DIMENSOES + 1)+ '+' # O número de '-' é igual ao dobro do comprimento do tabuleiro, menos o caracter final
     return borda
 
 
-def cabecalho(n):
+def cabecalho(DIMENSOES):
     """
     Constrói as duas linhas de cabeçalho:
         - Primeira linha: dígito dezenas (ou espaços)
         - Segunda linha: dígito unidades
+    
+    Argumentos:
+        DIMENSOES -> inteiro 
+    Return:
+        linha_dezenas -> string | linha_unidades -> string
     """
     #Criar conjunto das unidades
     unidades = []
-    for i in range(1, n+1):
+    for i in range(1, DIMENSOES+1):
         if i < 10:
             unidades.append(str(i))
         else:
@@ -291,7 +313,7 @@ def cabecalho(n):
     
     #Criar o conjunto das dezenas
     dezenas = [] 
-    for i in range(1, n+1):
+    for i in range(1, DIMENSOES+1):
         digito = i//10
         if i < 10:
             dezenas.append(' ')
@@ -309,10 +331,15 @@ def cabecalho(n):
 def linha_para_str(numero_linha, conteudo_linha):
     """
     Formata uma linha do tabuleiro:
-    - numero_linha: inteiro (1..n)
-    - conteudo_linha: lista de n caracteres (ex: ['.', '.', 'A', ...])
+    - numero_linha: (1..n)
+    - conteudo_linha: ['.', '.', 'A', ...]
     Resultado: string formatada, ex:
     " 1 | . . . A . . . |"
+
+    Argumentos:
+        numero_linha -> inteiro | conteudo_linha -> lista
+    Return:
+        linha_str -> string
     """
 
     linha_conteudos = ' '.join(conteudo_linha)
@@ -327,26 +354,31 @@ def linha_para_str(numero_linha, conteudo_linha):
 def tabuleiro_para_str(tab): #3.2.7
     """
     Recebe a lista de listas da função cria_tabuleiro e representa o tabuleiro como uma string
-    contínua e com os números de linha e coluna
+    contínua, com os números de linha e coluna e com as bordas
+    
+    Argumentos:
+        tab -> lista (tabuleiro)
+    Return:
+        tabuleiro -> string (tabuleiro formatado)
     """
-    n = len(tab)
+    DIMENSOES = len(tab)
     linhas = []
 
     #Adicionar os cabecalhos
-    cabecalho_dezenas, cabecalho_unidades = cabecalho(n)
+    cabecalho_dezenas, cabecalho_unidades = cabecalho(DIMENSOES)
     linhas.append(cabecalho_dezenas)
     linhas.append(cabecalho_unidades)
 
     #Adicionar a borda superior
-    borda_sup = borda_superior_inferior(n)
+    borda_sup = borda_superior_inferior(DIMENSOES)
     linhas.append(borda_sup)
 
     #Adicionar a linhas do tabuleiro
-    for i in range(0, n):
+    for i in range(0, DIMENSOES):
         linhas.append((linha_para_str(i + 1, tab[i]))) 
 
     #Adicionar a borda inferior
-    borda_inf = borda_superior_inferior(n)
+    borda_inf = borda_superior_inferior(DIMENSOES)
     linhas.append(borda_inf)
 
     #Criar o tabuleiro final
@@ -359,6 +391,14 @@ def tabuleiro_para_str(tab): #3.2.7
 #3.3- Representação e Funções de Jogador
 
 def ordena_letras(conj_letras): #Função auxiliar
+    """
+    Função auxliar que ordena, em ordem alfabética, uma lista de letras 
+
+    Argumentos:
+        conj_letras -> dicionário ou lista
+    Return:
+        lista_ordenada -> lista
+    """
     if not type(conj_letras) == list:
         lista_letras = criar_lista_letras(conj_letras)
     else:
@@ -371,6 +411,15 @@ def ordena_letras(conj_letras): #Função auxiliar
 
 
 def cria_jogador(ordem, pontos, conj_letras): #3.3.1
+    """
+    Através do número, pontuação e conjunto de letras a função cria um dicionário com as informações do jogador. 
+
+    Argumentos:
+        ordem -> inteiro | pontos -> inteiro | conj_letras -> conjunto de letras
+    Return:
+        jogador -> dicionário com chaves: 'id', 'pontos' e 'letras'
+    """
+    
     if ordem > 4 or ordem < 1 or not type(ordem) == int or not type(pontos) == int or pontos < 0 or not type(conj_letras) == dict:
         raise ValueError('cria_jogador: argumentos inválidos')
     
@@ -387,6 +436,14 @@ def cria_jogador(ordem, pontos, conj_letras): #3.3.1
 
 
 def jogador_para_str(jog): #3.3.2
+    """
+    Converte o dicionário jogador numa string para ser apresentada ao utilizador durante o jogo.
+
+    Argumentos:
+        jog -> jogador (dicionário)
+    Return:
+        string -> representação visual do jogador
+    """
     #Armazenar os dados do jogador em variáveis
     id_jogador = jog['id']
     pontos = jog['pontos']
@@ -401,14 +458,20 @@ def jogador_para_str(jog): #3.3.2
         str_letras = str_letras + ' ' + str(i)
 
     #Criar a string player
-    if pontos < 10:
-        player = f'#{id_jogador} (  {pontos}):{str_letras}'
-    elif pontos >= 10:
-        player = f'#{id_jogador} ( {pontos}):{str_letras}'
+    player = f'#{id_jogador} ({pontos:3d}):{str_letras}'
+
     return player
 
 
 def distribui_letra(letras, jogador): #3.3.3
+    """
+    Retira a última letra de uma lista e adiciona ao baralho do jogador.
+
+    Argumentos:
+        letras -> lista | jogador -> dicionário
+    Return:
+        True -> bool (se foi distribuída uma letra) | False -> bool (se a lista estiver vazia)
+    """
     #Verificar se a lista é vazia
     if len(letras) == 0:
         return False
@@ -428,14 +491,16 @@ def distribui_letra(letras, jogador): #3.3.3
 #------------------------------------------------------------
 #3.4- Funções de Jogo
 
-
-def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1 ESTÁ A GASTAR LETRAS QUE JA ESTAO NO TABULEIRO
+    
+def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1
     """
-    A primeira jogada deve cobrir a casa central do tabuleiro ( )
+    Primeira função de jogo que assegura as regras e coloca a palavra no tabuleiro
 
     Argumentos: 
         tab -> tabuleiro |  palavra -> string | casa -> tuplo | direcao -> string |
         conj_letras -> conjunto de letras (tuplo) | primeira -> Bool
+    Return:
+        () -> tuplo (vazio) se a jogada for inválida | letras_usadas -> lista
     """
     #Atribuir valores às variáveis
     l, c = casa[0], casa[1]
@@ -452,21 +517,23 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1 EST
         return ()
     
     #Verificar se a primeira palavra jogada interseta o centro do tabuleiro
-    if primeira == True:
-        centro = (len(tab[0]) + 1) // 2
-        coordenadas_centro = (centro, centro)
-        passou_pelo_centro = False
+    if primeira:
+        centro = (len(tab[0]) + 1) // 2 
+        coordenadas_centro = (centro, centro) #Definir o par de coordenadas do centro
+        passou_pelo_centro = False 
+        #Coordenadas iniciais
+        linha = l 
+        coluna = c
         for i in range(tamanho_palavra):
-            linha = l
-            coluna = c
-            if direcao == 'H':
-                coluna += i
-            elif direcao == 'V':
-                linha += i
-            if (linha, coluna) == coordenadas_centro:
-                passou_pelo_centro = True
+            if (linha, coluna) == coordenadas_centro: #Se alguma letra da palavra passar pela coordenada centro
+                passou_pelo_centro = True #
                 break
-        if passou_pelo_centro == False:
+            if direcao == 'H':
+                coluna += 1
+            elif direcao == 'V':
+                linha += 1
+            
+        if not passou_pelo_centro: #Caso não tenha passado no centro do tabuleiro
             return ()
     
     #Verificar se a palavra pode ser formada com as letras do conjunto
@@ -475,7 +542,7 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1 EST
     letras_usadas = [] #Criar uma lista para armazenar as letras já utilizadas
 
     padrao = ''.join(obtem_sequencia(tab, casa, direcao, tamanho_palavra))
-    if primeira == False:
+    if not primeira:
         contador = 0
         for i in padrao:
             if i in LETRAS:
@@ -484,20 +551,13 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1 EST
         if contador == len(padrao):
             return ()
 
-    if testa_palavra_padrao(palavra, padrao, conj_letras) == False:
+    if not testa_palavra_padrao(palavra, padrao, conj_letras):
         return ()
 
     if padrao == palavra:
         return ()
     
-    for p, l in zip(padrao, palavra):
-        #AS PALAVRAS NAO PODEM FICAR SOBREPOSTAS
-        """if p != '.':
-            if p == l:
-                continue
-            if p != l:
-                return ()"""
-        
+    for p, l in zip(padrao, palavra):       
         if p == '.' and l in conj_temp and conj_temp[l] > 0:
             letras_usadas.append(l)
             conj_temp[l] -= 1
@@ -511,13 +571,20 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, primeira): #3.4.1 EST
 
 def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
     """
-    Esta rotina tem como função processar o turno completo do jogador.
+    Processar o turno completo do jogador. 
+
+    - 'P' -> Passar a vez
+    - 'T ...' -> Trocar as letras do baralho
+    - 'J (casa) direcao palavra' -> Jogar a palavra no tabuleiro
+
     Argumentos:
         tab -> tabuleiro  | jog -> jogador (dicionário) | pilha -> Lista de letras |
         pontos -> inteiro | primeira -> Bool
+    Return:
+        False -> bool (se a jogada for Passar) | True -> bool (se a jogada for Jogar ou Trocar)
     """
 
-    n = 15
+    DIMENSOES = 15
     while True:
         letras_troca = []
         #Pedir uma jogada ao utilizador
@@ -530,7 +597,7 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
             return processa_jogada(tab, jog, pilha, pontos, primeira)
         
         #Opção Passar a vez
-        if entrada == 'P':
+        if entrada.strip() == 'P':
             return False
             
         #Opção Trocar Letras
@@ -579,7 +646,7 @@ def processa_jogada(tab, jog, pilha, pontos, primeira): #3.4.2
             linha = int(linha_str)
             coluna = int(coluna_str)
 
-            if n < linha or linha < 0 or n < coluna or coluna < 0 or not type(coluna) == int or not type(linha) == int: #Verificar se estão dentro do limite do tabuleiro
+            if DIMENSOES < linha or linha < 0 or DIMENSOES < coluna or coluna < 0 or not type(coluna) == int or not type(linha) == int: #Verificar se estão dentro do limite do tabuleiro
                 continue
 
             casa = (linha, coluna) #Criar o tuplo casa
@@ -630,8 +697,9 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
 
     Argumentos:
         jogadores -> inteiro [2,4] | saco -> dicionário | pontos -> dicionário | seed -> inteiro (estado inicial)
-    Devolve:
-        Pontuação final do jogador -> Tuplo 
+    Return:
+        tuplo_final -> tuplo (Pontuação final dos jogadores)
+    Raises:
     """
     #Verificação dos parâmetros
     if not type(jogadores) == int or jogadores < 2 or jogadores > 4:
@@ -676,24 +744,31 @@ def scrabble(jogadores, saco, pontos, seed): #3.4.3
                 print(jogador_para_str(j))
 
             resultado = processa_jogada(tab, jogador, pilha, pontos, primeira)
-            if primeira:
-                primeira = False
-
+            
             #Verificar se os jogadores passaram
-            if resultado == False:
+            if not resultado:
                 passes += 1
+            else:
+                passes = 0
+            
+            #Verificar se é a primeira jogada
+            meio = DIMENSOES // 2 + 1
+            tuplo_centro = (meio,meio)
+            centro = obtem_valor(tab, tuplo_centro)
+            if centro != '.': 
+                primeira = False
 
             #Final do Jogo
             tuplo_final = ()
-            if passes >= jogadores: #Se todos os jogadores passarem a sua vez termina
+            if passes == jogadores: #Se todos os jogadores passarem a sua vez termina
                 for jog in lista_jogadores:
                     tuplo_final = tuplo_final + (jog['pontos'],)
-                    #return tuplo_final 
+                return tuplo_final
 
             baralho_jogador = criar_lista_letras(jogador['letras'])
             if len(pilha) == 0 and len(baralho_jogador) == 0:
                 for jog in lista_jogadores:
                     tuplo_final = tuplo_final + (jog['pontos'],)
                 return tuplo_final 
-                    
+        
     
