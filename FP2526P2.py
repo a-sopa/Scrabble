@@ -33,9 +33,9 @@ def cria_casa(lin,col):
             - l e c não forem inteiros
             - l e c forem menores que 1 ou maiores que 15
     """
-    if type(lin) != int or lin > 15 or lin < 0:
+    if type(lin) != int or lin > 15 or lin <= 0:
         raise ValueError('cria_casa: argumentos inválidos') 
-    if type(col) != int or col > 15 or col < 0:
+    if type(col) != int or col > 15 or col <= 0:
         raise ValueError('cria_casa: argumentos inválidos') 
     
     casa = (lin, col)
@@ -78,14 +78,18 @@ def eh_casa(arg):
     Returns:
         bool: True se for uma casa válida, False caso contrário.
     """
-    l, c = arg
-    if type(arg[0]) == str:
-        l = int(arg[0])
-    if type(arg[1]) == str:
-        c = int(arg[1])
-    if type(arg) == tuple and len(arg) == 2 and l > 0 and l <= 15 and c > 0 and c <= 15:
-        return True
-    return False
+    if not isinstance(arg, (tuple, set, list, str)) or len(arg) != 2:
+        return False 
+    
+    l, c = arg 
+    if type(l) == str or type(c) == str and (l.isdigit() and c.isdigit()):
+        l = int(l)
+        c = int(c)        
+
+    if type(l) != int or type(c) != int:
+        return False  
+    
+    return l > 0 and l <= 15 and c > 0 and c <= 15
 
 
 def casas_iguais(c1,c2):
@@ -256,6 +260,9 @@ def cria_humano(nome):
     """
     if type(nome) != str:
         raise ValueError('cria_humano: argumento inválido')
+    nome = nome.strip()
+    if nome == '':
+        raise ValueError('cria_humano: argumento inválido')
     
     return {'nome': nome, 'pontos': 0, 'letras': {}}
 
@@ -306,13 +313,21 @@ def jogador_letras(j):
     letras_jog = ordena_letras(letras_jog)
     letras_str = ''
     for l in letras_jog:
-        letras_str += l + ' '
+        letras_str += l
 
     return letras_str.strip()
 
 
 #Modificadores
 def recebe_letra(j, l):
+    """
+    Adiciona uma ocorrência da letra l ao baralho do jogador j.
+
+    Args:
+        j -> jogador (TAD; tipicamente dicionário com chave 'letras') | l -> string 
+    Return:
+        j -> jogador atualizado
+    """
     if l in j['letras']:
         j['letras'][l] += 1
     else:
@@ -321,48 +336,111 @@ def recebe_letra(j, l):
 
 
 def usa_letra(j,l):
-    if j['letras'][l] == 1:
-        del(j['letras'][l])
+    """
+    Remove uma ocorrência da letra l do baralho do jogador j.
+
+    Args:
+        j -> jogador (TAD; tipicamente dicionário com chave 'letras') | l -> string 
+    Return:
+        j -> jogador atualizado
+    """
+    letras = criar_lista_letras(jogador_letras(j))
+    if l not in letras:
+        return j
+    
+    ocorrencias = letras.count(l)
+
+    if ocorrencias == 1:
+        j['letras'].pop(l)
     else:
-        j['letras'][l] -= 1
+        j['letras'][l] = ocorrencias - 1
     return j
 
 
 def soma_pontos(j, p):
+    """
+    Acrescenta p pontos ao total do jogador j.
+
+    Args:
+        j -> jogador (TAD; tipicamente dicionário com chave 'pontos')
+        p -> inteiro 
+    Return:
+        j -> jogador atualizado
+    """
     j['pontos'] += p
     return j
 
 
 #Reconhecedores
 def eh_jogador(arg):
+    """
+    Reconhecedor de tipo abstrato: indica se arg representa um jogador válido.
+
+    Args:
+        arg -> qualquer argumento
+    Return:
+        bool -> True se arg respeita o TAD jogador
+    """
     return type(arg) == dict and 'nome' in arg and 'pontos' in arg and 'letras' in arg and type(arg['nome']) == str and type(arg['pontos']) == int and type(arg['letras']) == dict
  
 
 def eh_humano(arg):
-    return jogador_identidade(arg) not in ('FACIL', 'MEDIO', 'DIFICIL')
+    """
+    Indica se o argumento é um jogador humano.
+
+    Args:
+        arg -> argumento
+    Return:
+        bool -> True se arg for um jogador e o seu nome não corresponder a um nível de agente
+    """
+    return eh_jogador(arg) and jogador_identidade(arg) not in ('FACIL', 'MEDIO', 'DIFICIL')
 
 
 def eh_agente(arg):
-    return jogador_identidade(arg) in ('FACIL', 'MEDIO', 'DIFICIL') 
+    """
+    Indica se o argumento é um agente (bot).
+
+    Args:
+        arg -> jogador
+    Return:
+        bool -> True se arg for um jogador e o seu nome corresponder a um dos níveis de dificuldade
+    """
+    return eh_jogador(arg) and jogador_identidade(arg) in ('FACIL', 'MEDIO', 'DIFICIL') 
 
 
 #Teste
 def jogadores_iguais(j1, j2):
+    """
+    Verifica se dois jogadores (TAD) são iguais.
+
+    Args:
+        j1, j2 -> jogadores
+    Return:
+        bool -> True se ambos forem jogadores válidos e tiverem nome, pontos e baralho iguais
+    """
     return eh_jogador(j1) and eh_jogador(j2) and j1['nome'] == j2['nome'] and j1['pontos'] == j2['pontos'] and j1['letras'] == j2['letras']
 
 
 #Transformador
 def jogador_para_str(j):
-    letras_j = criar_lista_letras(j['letras'])
-    letras_j = ordena_letras(letras_j)
-    letras_str = ""
-    for i in letras_j:
-        letras_str = letras_str + " " + i
+    """
+    Transforma o jogador (dicionário) numa representação (em string), para apresentar ao utilizador 
+
+    Args:
+        j -> jogador
+    Return:
+        string -> formato:
+            - agente: 'BOT("NIVEL") ("pontos"): "letras"'
+            - humano: '"nome" ("pontos"): "letras"'
+    """
+    letras_str = ''
+    for i in jogador_letras(j):
+        letras_str += ' ' + i
 
     if eh_agente(j):
-        return f'BOT({j["nome"]}) ({j["pontos"]:3d}):{letras_str}'
+        return f'BOT({jogador_identidade(j)}) ({jogador_pontos(j):3d}):{letras_str}'
     elif eh_humano(j):
-        return f'{j["nome"]} ({j["pontos"]:3d}):{letras_str}'
+        return f'{jogador_identidade(j)} ({jogador_pontos(j):3d}):{letras_str}'
 
 
 def distribui_letras(jogador, saco, num): #3.3.3
@@ -372,7 +450,8 @@ def distribui_letras(jogador, saco, num): #3.3.3
     Argumentos:
         letras -> lista | jogador -> dicionário
     Return:
-        True -> bool (se foi distribuída uma letra) | False -> bool (se a lista estiver vazia)
+        True -> bool (se foi distribuída uma letra)
+        False -> bool (se a lista estiver vazia)
     """
     #Verificar se a lista é vazia
     if len(saco) == 0:
@@ -398,6 +477,14 @@ pontos = {
 
 #Construtor
 def cria_vocabulario(v):
+    """
+    Cria o TAD vocabulario responsável por armazenar todas as palavras que irão ser aceites pelo jogo
+
+    Args:
+        v -> tuplo
+    Return:
+        vocab -> dicionário
+    """
     if not isinstance(v, (set, list, tuple)):
         raise ValueError('cria_vocabulario: argumento inválido')
     if len(v) < 2:
@@ -439,6 +526,14 @@ def cria_vocabulario(v):
 
 
 def obtem_pontos(vocabulario, palavra):
+    """
+    Obtém a pontuação de uma palavra segundo o vocabulário.
+
+    Args:
+        vocabulario -> dicionário do TAD vocabulário | palavra -> string
+    Return:
+        pts -> inteiro (pontos)
+    """
     if type(palavra) != str:
         return 0 
     
@@ -580,8 +675,6 @@ def procura_palavra_padrao(vocabulario, padrao, letras, min_pontos):
                         res = (palavra, pontos)
     
     if inicial == '.':  # O padrão começa por um espaço livre
-        # Criar set de letras únicas disponíveis e ordenar
-
         comps = vocabulario.get(comprimento, {})
         for l in letras_para_testa:
             palavras_possiveis = comps.get(l, [])
@@ -622,15 +715,13 @@ def cria_tabuleiro():
 #Seletores
 def obtem_letra(t, c):
     #Obter o caracter que está na casa (c)
-    linha = c[0] - 1 #Compensar o facto de o índice começar em 0
-    coluna = c[1] - 1 
+    linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1 #Compensar o facto de o índice começar em 0
     return t[linha][coluna]
 
 
 #Modificadores
 def insere_letra(t,c,l):
-    linha = c[0] - 1
-    coluna = c[1] - 1
+    linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1
     #Inserir a letra no tabuleiro
     t[linha][coluna] = l
     return t
@@ -646,7 +737,6 @@ def eh_tabuleiro(arg):
         for casa in linha:
             if casa != '.' and casa not in LETRAS:
                 return False
-
     return True
 
 
@@ -786,7 +876,7 @@ def tabuleiro_para_str(t): #3.2.7
 
     return tabuleiro
 
-
+#Funções de Alto Nível
 def obtem_padrao(t, i, f):
     linha_i = i[0] - 1
     coluna_i = i[1] - 1
@@ -805,8 +895,7 @@ def obtem_padrao(t, i, f):
 
 
 def insere_palavra(t, c, d, p):
-    linha = c[0]
-    coluna = c[1]
+    linha, coluna = obtem_lin(c), obtem_col(c)
     if d == 'H':
         for i in range(len(p)):
             t = insere_letra(t, (linha, coluna + i), p[i])
@@ -820,6 +909,11 @@ def insere_palavra(t, c, d, p):
 def obtem_subpadroes(t, i, f, l):
     """
     Função responsável por obter os subpadrões de um padrão específico do tabuleiro
+
+    Args:
+        t -> lista (tabuleiro) | i -> tuplo (casa inicial) | f -> tuplo (casa final) | l -> inteiro
+    Return
+        subpadrao_lst -> tuplo | casas_i_tup -> tuplo
     """
     #Obter o padrão
     padrao = obtem_padrao(t, i, f)
@@ -1005,9 +1099,12 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.
             return ()
     
     #Verificar se a palavra pode ser formada com as letras do conjunto
-    
-    conj_temp = conj_letras.copy() #Criar um conjunto temporário para não alterar destrutivamente a lista original
+    if isinstance(conj_letras, list):
+        conj_temp = conj_letras.copy() #Criar um conjunto temporário para não alterar destrutivamente a lista original
+
+    conj_temp = criar_lista_letras(conj_letras)
     letras_usadas = [] #Criar uma lista para armazenar as letras já utilizadas
+
     #Condição a executar se não for a primeira jogada
     if not tabuleiro_vazio:
         contador = 0
@@ -1020,8 +1117,8 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.
             return ()
 
     #Se a palavra não puder ser introduzida
-    if not testa_palavra_padrao(vocab, palavra, padrao, conj_letras):
-        return ()
+    """if not testa_palavra_padrao(vocab, palavra, padrao, conj_letras):
+        return ()"""
 
     #Se a palavra corresponder ao padrao
     if padrao == palavra:
@@ -1029,9 +1126,10 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.
     
     #Retirar as letras
     for p, l in zip(padrao, palavra):       
-        if p == '.' and l in conj_temp and conj_temp[l] > 0:
+        if p == '.' and l in conj_temp:# or p == '.' and conj_temp[l] > 0:
             letras_usadas.append(l)
-            conj_temp[l] -= 1
+            #conj_temp[l] -= 1
+            conj_temp.remove(l)
 
     letras_usadas = ordena_letras(letras_usadas) #Ordenar o baralho do jogador
     letras_usadas = tuple(letras_usadas) #Converter para tuplo
@@ -1043,7 +1141,7 @@ def jogada_humano(tab, jog, vocab, pilha):
    while True:
         letras_troca = []
         #Pedir uma jogada ao utilizador
-        entrada = input(f'Jogada {jog["nome"]}: ')
+        entrada = input(f'Jogada {jogador_identidade(jog)}: ')
         #Separar os vários passos da jogada numa lista
         jogada = entrada.split(' ') 
 
@@ -1066,7 +1164,7 @@ def jogada_humano(tab, jog, vocab, pilha):
             validacao = True
             #Verificar se o jogador está a trocar letras que estão no seu baralho
             for letra in letras_para_troca:
-                if letra not in jog['letras'] or jog['letras'].get(letra, 0) == 0:
+                if letra not in jogador_letras(jog) or jog['letras'].get(letra, 0) == 0:
                         validacao = False
                         break
             
@@ -1157,10 +1255,10 @@ def jogada_agente(tab, jog, vocab, pilha):
     min_pontos = 0
     #Passar a vez se o tabulerio estiver vazio
     if eh_tabuleiro_vazio(tab):
-        print(f'Jogada {jog["nome"]}: P')
+        print(f'Jogada {jogador_identidade(jog)}: P')
         return False
 
-    letras_agente = criar_lista_letras(jog['letras'])
+    letras_agente = criar_lista_letras(jogador_letras(jog))
 
     #Jogar
     padroes, casas, direcoes = gera_todos_padroes(tab, len(letras_agente))
@@ -1191,10 +1289,10 @@ def jogada_agente(tab, jog, vocab, pilha):
         casa = casas_s[i]
         direcao = direcoes_s[i]
 
-        palavra, pontos = procura_palavra_padrao(vocab, padrao, jog['letras'], min_pontos)
+        palavra, pontos = procura_palavra_padrao(vocab, padrao, jogador_letras(jog), min_pontos)
 
         if palavra != '':
-            letras_usadas = joga_palavra(tab, palavra, casa, direcao, jog['letras'], vocab, padrao)
+            letras_usadas = joga_palavra(tab, palavra, casa, direcao, jogador_letras(jog), vocab, padrao)
 
             if letras_usadas != ():
                 if pontos > melhor_pontos:
@@ -1210,20 +1308,24 @@ def jogada_agente(tab, jog, vocab, pilha):
         for letra in melhor_letras_usadas:
             usa_letra(jog, letra)
         distribui_letras(jog, pilha, len(melhor_letras_usadas))
-        print(f'Jogada {jog["nome"]}: J {obtem_lin(melhor_casa)} {obtem_col(melhor_casa)} {melhor_direcao} {melhor_palavra}')
+        print(f'Jogada {jogador_identidade(jog)}: J {obtem_lin(melhor_casa)} {obtem_col(melhor_casa)} {melhor_direcao} {melhor_palavra}')
         return True
 
     #Verificar se é possível trocar as letras
     if len(pilha) >= 7:
-        print(f'Jogada {jog["nome"]}: T {jogador_letras(jog)}')
-        #Retirar as letras do baralho do jogador
-        jog['letras'] = {} 
+        letras_troca = ''
+        for let in jogador_letras(jog):
+            letras_troca += ' ' + let
+            #Retirar as letras do baralho do jogador
+            usa_letra(jog, let)
+
+        print(f'Jogada {jogador_identidade(jog)}: T{letras_troca}')
         #Acrescentar as letras novas
         distribui_letras(jog, pilha, 7)
         
         return True
 
-    print(f'Jogada {jog["nome"]}: P')
+    print(f'Jogada {jogador_identidade(jog)}: P')
     return False
 
 
@@ -1277,11 +1379,11 @@ def scrabble2(jogadores, nome_fich, seed): #tuplo, str, int
             tuplo_final = ()
             if passes > len(lista_jogadores):
                 for jog in lista_jogadores:
-                    tuplo_final = tuplo_final + (jog['pontos'],) #Criar o tuplo com os pontos de cada jogador
+                    tuplo_final = tuplo_final + (jogador_pontos(jogador),) #Criar o tuplo com os pontos de cada jogador
                 return tuplo_final
     
-            baralho_jogador = criar_lista_letras(jogador['letras'])
+            baralho_jogador = criar_lista_letras(jogador_letras(jogador))
             if len(pilha) == 0 and len(baralho_jogador) == 0:
                 for jog in lista_jogadores:
-                    tuplo_final = tuplo_final + (jog['pontos'],) #Criar o tuplo com os pontos de cada jogador
+                    tuplo_final = tuplo_final + (jogador_pontos(jogador),) #Criar o tuplo com os pontos de cada jogador
                 return tuplo_final 
