@@ -8,7 +8,7 @@
 | Email: afonso.sopa@tecnico.ulisboa.pt                   |
 | Curso: LEIC-A 2025/2026                                 |
 | Data de início: 12/10/2025                              |
-| Data de término: 25/10/2025                             |
+| Data de término: 26/10/2025                             |
 +---------------------------------------------------------+
 """
 #---------------------------------------------
@@ -51,8 +51,9 @@ def obtem_col(casa):
     Return:
         coluna -> inteiro
     """
-    coluna = casa[1]
-    return coluna
+    if eh_casa(casa):
+        coluna = casa[1]
+        return coluna
 
 
 def obtem_lin(casa):
@@ -64,8 +65,9 @@ def obtem_lin(casa):
     Return:
         linha -> inteiro
     """
-    linha = casa[0]
-    return linha
+    if eh_casa(casa):
+        linha = casa[0]
+        return linha
 
 
 def eh_casa(arg):
@@ -493,10 +495,11 @@ def cria_vocabulario(v):
         v -> tuplo
     Return:
         vocab -> dicionário
+    
     """
     if not isinstance(v, (set, list, tuple)):
         raise ValueError('cria_vocabulario: argumento inválido')
-    if len(v) < 2:
+    if len(v) < 1:
         raise ValueError('cria_vocabulario: argumento inválido')
     
     vocab = {}
@@ -505,7 +508,7 @@ def cria_vocabulario(v):
             raise ValueError('cria_vocabulario: argumento inválido')
         palavra = palavra.strip()
         if 2 > len(palavra) or len(palavra)> 15:
-            continue
+            raise ValueError('cria_vocabulario: argumento inválido')
         for letra in palavra:
             if letra not in LETRAS:
                 raise ValueError('cria_vocabulario: argumento inválido')
@@ -642,6 +645,16 @@ def ficheiro_para_vocabulario(nome_fich):
 
 
 def vocabulario_para_str(vocabulario):
+    """
+    Converte o vocabulário para uma string com todas as palavras ordenadas por comprimento e ordem lexicográfica.
+
+    Args:
+        vocabulario -> (TAD vocabulário)
+
+    Return:
+        res -> string (palavras separadas por linha)
+
+    """
     if not type(vocabulario) == dict:
         vocabulario = cria_vocabulario(vocabulario) 
 
@@ -659,6 +672,16 @@ def vocabulario_para_str(vocabulario):
 
 
 def procura_palavra_padrao(vocabulario, padrao, letras, min_pontos):
+    """
+    Procura a melhor palavra que encaixa num padrão, usando as letras disponíveis e respeitando a pontuação mínima.
+
+    Args:
+        vocabulario -> dicionário (TAD vocabulário) | padrao -> string (padrão com letras e pontos)
+        letras -> lista ou string (letras disponíveis) | min_pontos -> inteiro (pontuação mínima exigida)
+
+    Return:
+        res -> tuplo (palavra, pontos) ou ('', 0) se não for encontrada palavra
+    """
     if type(vocabulario) != dict:
         vocabulario = cria_vocabulario(vocabulario)
     
@@ -705,12 +728,12 @@ def procura_palavra_padrao(vocabulario, padrao, letras, min_pontos):
 #Construtor
 def cria_tabuleiro():
     """
-    Cria uma lista de listas com n elementos e n listas que irá representar o tabuleiro de jogo
+    Cria uma lista de listas com (DIMENSOES) elementos e (DIMENSOES) listas que irá representar o tabuleiro de jogo
 
-    Argumentos: Função sem parâmetros
+    Args: Função sem parâmetros
     Return:
         tab -> Tabuleiro
-    #
+    
     """
     tab = [] 
     #Criar a lista de listas
@@ -723,6 +746,16 @@ def cria_tabuleiro():
 
 #Seletores
 def obtem_letra(t, c):
+    """
+    Obtém a letra ou '.' presente numa casa específica do tabuleiro.
+
+    Args:
+        t -> lista (tabuleiro)
+        c -> tuplo (casa)
+
+    Return:
+        string -> letra ou ponto presente na casa
+    """
     #Obter o caracter que está na casa (c)
     linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1 #Compensar o facto de o índice começar em 0
     return t[linha][coluna]
@@ -730,14 +763,33 @@ def obtem_letra(t, c):
 
 #Modificadores
 def insere_letra(t,c,l):
-    linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1
-    #Inserir a letra no tabuleiro
-    t[linha][coluna] = l
+    """
+    Insere uma letra numa casa específica do tabuleiro.
+
+    Args:
+        t -> lista (tabuleiro) | c -> tuplo (casa) | l -> string (letra a inserir)
+
+    Return:
+        t -> lista (tabuleiro atualizado)
+    """
+    if eh_casa(c):
+        linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1
+        #Inserir a letra no tabuleiro
+        t[linha][coluna] = l
     return t
 
 
 #Reconhecedores
 def eh_tabuleiro(arg):
+    """
+    Verifica se o argumento representa um tabuleiro válido.
+
+    Args:
+        arg -> qualquer tipo
+
+    Return:
+        bool -> True se for um tabuleiro válido, False caso contrário
+    """
     if not isinstance(arg, (list, tuple, dict)) or len(arg) != DIMENSOES:
         return False
     for linha in arg:
@@ -750,6 +802,15 @@ def eh_tabuleiro(arg):
 
 
 def eh_tabuleiro_vazio(arg):
+    """
+    Verifica se o tabuleiro está completamente vazio (só contém '.').
+
+    Args:
+        arg -> lista (tabuleiro)
+
+    Return:
+        bool -> True se estiver vazio, False caso contrário
+    """
     if not eh_tabuleiro(arg):
         return False
     for linha in arg:
@@ -760,6 +821,15 @@ def eh_tabuleiro_vazio(arg):
 
 
 def tabuleiros_iguais(t1,t2):
+    """
+    Verifica se dois tabuleiros são iguais, casa a casa.
+
+    Args:
+        t1 -> lista (tabuleiro 1) | t2 -> lista (tabuleiro 2)
+
+    Return:
+        bool -> True se forem iguais, False caso contrário
+    """
     if not eh_tabuleiro(t1) or not eh_tabuleiro(t2):
         return False
     for l in range(DIMENSOES):
@@ -887,10 +957,19 @@ def tabuleiro_para_str(t): #3.2.7
 
 #Funções de Alto Nível
 def obtem_padrao(t, i, f):
-    linha_i = i[0] - 1
-    coluna_i = i[1] - 1
-    linha_f = f[0] - 1
-    coluna_f = f[1] - 1
+    """
+    Obtém o padrão de letras/espaços entre duas casas no tabuleiro, na horizontal ou vertical.
+
+    Args:
+        t -> lista (tabuleiro) | i -> tuplo (casa inicial) | f -> tuplo (casa final)
+
+    Return:
+        string -> padrão de letras entre as duas casas
+    """
+    linha_i = obtem_lin(i) - 1
+    coluna_i = obtem_col(i) - 1
+    linha_f = obtem_lin(f) - 1
+    coluna_f = obtem_col(f) - 1
     res = ''
     if linha_i == linha_f: #Direção Horizontal
         for i in range(coluna_i, coluna_f + 1):
@@ -904,6 +983,16 @@ def obtem_padrao(t, i, f):
 
 
 def insere_palavra(t, c, d, p):
+    """
+    Insere uma palavra no tabuleiro a partir de uma casa e numa direção.
+
+    Args:
+        t -> lista (tabuleiro) | c -> tuplo (casa inicial)
+        d -> string (direção) | p -> string (palavra a inserir)
+
+    Return:
+        tabuleiro -> lista atualizada com a palavra inserida
+    """
     linha, coluna = obtem_lin(c), obtem_col(c)
     if d == 'H':
         for i in range(len(p)):
@@ -977,10 +1066,16 @@ def obtem_subpadroes(t, i, f, l):
 
 def gera_todos_padroes(t, l):
     """
-    Devolve três tuplos (padroes, casas_inicio, direcoes).
-    - padroes: tuplo de strings (sub-padrões) na ordem de geração (linhas completas, depois colunas).
-    - casas_inicio: tuplo de coordenadas com a casa inicial correspondente para cada padrao.
-    - direcoes: tuplo com 'H' ou 'V' para cada padrão, alinhado por índice com padroes.
+    Gera todos os padrões de até um determinado comprimento (l)
+
+    Args:
+        t -> lista (tabuleiro) | l -> inteiro (comprimento)
+
+    Return:
+    -> três tuplos (padroes, casas_inicio, direcoes).
+        - padroes: tuplo de strings (sub-padrões) na ordem de geração (linhas completas, depois colunas).
+        - casas_inicio: tuplo de coordenadas com a casa inicial correspondente para cada padrao.
+        - direcoes: tuplo com 'H' ou 'V' para cada padrão, alinhado por índice com padroes.
     """
     padroes = []
     casas = []
@@ -1005,6 +1100,7 @@ def gera_todos_padroes(t, l):
         direcoes.extend(['V'] * len(subpads)) #Colocar 'V' tantas vezes quantos subpadrões foram gerados
     
     return tuple(padroes), tuple(casas), tuple(direcoes)
+
 
 #---------------------------------------------------------
 #Funções Adicionais
@@ -1053,6 +1149,14 @@ def permuta_letras(letras, estado): #Função Auxiliar
 
 
 def baralha_saco(seed):
+    """
+    Cria uma lista de letras pseudoaleatoriamente baralhada com base numa seed.
+
+    Args:
+        seed -> inteiro (estado inicial do gerador pseudoaleatório)
+    Return:
+        saco_ordenado -> lista (letras baralhadas)
+    """
     letras_saco = criar_lista_letras(saco)
     saco_ordenado = ordena_letras(letras_saco)
     permuta_letras(saco_ordenado, seed)
@@ -1064,12 +1168,12 @@ def baralha_saco(seed):
 def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.1
     """
     Funçao Auxiliar ao funcionamento da jogada_humano e jogada_agente.
-    Tem como função realizar a jogada retornando um tuplo com as letras usadas para a colocação da palavra no tabuleiro
+    Tem como função verificar se uma jogada é válida e retorna um tuplo com as letras usadas para a colocação da palavra no tabuleiro
 
     Argumentos: 
         tab -> tabuleiro |  palavra -> string | casa -> tuplo | direcao -> string |
         conj_letras -> conjunto de letras (tuplo) | vocab -> conjunto de letras válidas (dicionário) |
-        primeira -> Bool
+        padrao -> string
     Return:
         () -> tuplo (vazio) se a jogada for inválida | letras_usadas -> lista
     """
@@ -1126,8 +1230,8 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.
             return ()
 
     #Se a palavra não puder ser introduzida
-    """if not testa_palavra_padrao(vocab, palavra, padrao, conj_letras):
-        return ()"""
+    if not testa_palavra_padrao(vocab, palavra, padrao, conj_letras):
+        return ()
 
     #Se a palavra corresponder ao padrao
     if padrao == palavra:
@@ -1147,7 +1251,17 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.
 
 
 def jogada_humano(tab, jog, vocab, pilha):
-   while True:
+    """
+    Executa a jogada de um jogador humano, permitindo jogar, trocar letras ou passar a vez.
+
+    Args:
+        tab -> lista (tabuleiro) | jog -> dicionário (jogador humano)
+        vocab -> dicionário (vocabulário válido) | pilha -> lista (saco de letras restantes)
+
+    Return:
+        bool -> True se o jogador jogou ou trocou de letras, False se passou a vez
+    """
+    while True:
         letras_troca = []
         #Pedir uma jogada ao utilizador
         entrada = input(f'Jogada {jogador_identidade(jog)}: ')
@@ -1224,8 +1338,8 @@ def jogada_humano(tab, jog, vocab, pilha):
                 continue
             
             #Testar a validade da jogada
-            if not testa_palavra_padrao(vocab, palavra, padrao, jog['letras']):
-                continue
+            """if not testa_palavra_padrao(vocab, palavra, padrao, jog['letras']):
+                continue"""
 
             #Obter as letras usadas na palavra
             letras_usadas = joga_palavra(tab, palavra, casa, direcao, jog['letras'], vocab, padrao)
@@ -1258,6 +1372,16 @@ def jogada_humano(tab, jog, vocab, pilha):
 
 
 def jogada_agente(tab, jog, vocab, pilha):
+    """
+    Executa a jogada de um agente (bot), escolhendo a melhor palavra possível ou trocando letras.
+
+    Args:
+        tab -> lista (tabuleiro) | jog -> dicionário (jogador agente)
+        vocab -> dicionário (vocabulário válido) | pilha -> lista (saco de letras restantes)
+
+    Return:
+        bool -> True se o bot trocou de letras ou jogou, False se passou a vez
+    """
     min_pontos = 0
     #Passar a vez se o tabulerio estiver vazio
     if eh_tabuleiro_vazio(tab):
@@ -1335,13 +1459,31 @@ def jogada_agente(tab, jog, vocab, pilha):
     return False
 
 
-def scrabble2(jogadores, nome_fich, seed): #tuplo, str, int
+def scrabble2(jogadores, nome_fich, seed): 
+    """
+    Função principal que executa o jogo SCRABBLE2.
+
+    Args:
+        jogadores -> tuplo | nome_fich -> string | seed -> inteiro 
+
+    Return:
+        tuplo_final -> tuplo (com as pontuações de cada jogador)
+
+    Raises:
+        ValueError: 'scrabble2: argumentos inválidos' se:
+            - jogadores não for tuplo entre 2 e 4, ou se os seus nomes não forem válidos
+            - nome_fich não for uma string válida
+            - seed não for inteiro positivo
+            - saco não for um dicionário, ou se não houver letras suficientes para distribuir por todos os jogadores
+    """
     #Validações
     if type(jogadores) != tuple or len(jogadores) > 4 or len(jogadores) < 1 or type(nome_fich) != str or type(seed) != int or seed <= 0 or type(saco) != dict:
         raise ValueError('scrabble2: argumentos inválidos')
     
     #Obter a pilha 
     pilha = baralha_saco(seed)
+    if len(pilha) < 7*len(jogadores):
+        raise ValueError('scrabble2: argumentos inválidos')
 
     #Criar os jogadores
     lista_jogadores = []
@@ -1349,6 +1491,8 @@ def scrabble2(jogadores, nome_fich, seed): #tuplo, str, int
         if type(j) != str:
             raise ValueError('scrabble2: argumentos inválidos')
         if j[0] == '@':
+            if j[1:] not in ('FACIL', 'MEDIO', 'DIFICIL'):
+                raise ValueError('scrabble2: argumentos inválidos')
             player = cria_agente(j[1:])
         else:
             player = cria_humano(j)
