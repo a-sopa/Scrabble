@@ -309,6 +309,14 @@ def jogador_pontos(j):
 
 
 def jogador_letras(j):
+    """
+    Devolve as letras atuais do jogador.
+    
+    Args:
+        j -> dicionário
+    Return:
+        letras do jogador -> string
+    """
     letras_jog = criar_lista_letras(j['letras'])
     letras_jog = ordena_letras(letras_jog)
     letras_str = ''
@@ -418,7 +426,8 @@ def jogadores_iguais(j1, j2):
     Return:
         bool -> True se ambos forem jogadores válidos e tiverem nome, pontos e baralho iguais
     """
-    return eh_jogador(j1) and eh_jogador(j2) and j1['nome'] == j2['nome'] and j1['pontos'] == j2['pontos'] and j1['letras'] == j2['letras']
+    return (eh_jogador(j1) and eh_jogador(j2) and jogador_identidade(j1) == jogador_identidade(j2) 
+            and jogador_pontos(j1) == jogador_pontos(j2) and jogador_letras(j1) == jogador_letras(j2))
 
 
 #Transformador
@@ -469,7 +478,7 @@ def distribui_letras(jogador, saco, num): #3.3.3
 
 #---------------------------------------------------------------
 #TAD Vocabulário
-pontos = {
+PONTOS = {
     'A': 1, 'B': 3, 'C': 2, 'Ç': 3, 'D': 2, 'E': 1,
     'F': 4, 'G': 4, 'H': 4, 'I': 1, 'J': 5, 'L': 2,
     'M': 1, 'N': 3, 'O': 1, 'P': 2, 'Q': 6, 'R': 1,
@@ -496,18 +505,18 @@ def cria_vocabulario(v):
             raise ValueError('cria_vocabulario: argumento inválido')
         palavra = palavra.strip()
         if 2 > len(palavra) or len(palavra)> 15:
-            raise ValueError('cria_vocabulario: argumento inválido')
+            continue
         for letra in palavra:
             if letra not in LETRAS:
                 raise ValueError('cria_vocabulario: argumento inválido')
 
-        palavra = palavra.upper()    
+        #palavra = palavra.upper()    
         
         comp = len(palavra)
         inicial = palavra[0]
         pontuacao = 0
         for letra in palavra:
-            pontuacao += pontos[letra] 
+            pontuacao += PONTOS[letra] 
 
         #O vocabulário vai ser do tipo «comprimento de palavra» : {«letra inicial» : [(palavras, pontuacao), ...]
         if comp not in vocab:
@@ -1089,7 +1098,7 @@ def joga_palavra(tab, palavra, casa, direcao, conj_letras, vocab, padrao): #3.4.
         #Coordenadas iniciais
         pos = casa
 
-        for i in range(tamanho_palavra):
+        for i in range(tamanho_palavra + 1):
             if pos == coordenadas_centro: #Se alguma letra da palavra passar pela coordenada centro
                 passou_pelo_centro = True #
                 break
@@ -1158,25 +1167,22 @@ def jogada_humano(tab, jog, vocab, pilha):
             #Verificação
             letras_para_troca = jogada[1:]
         
-            if len(letras_para_troca) == 0 or len(letras_para_troca) > 7:
+            if len(pilha) == 0 or len(letras_para_troca) == 0 or len(letras_para_troca) > 7:
                 continue
         
             validacao = True
             #Verificar se o jogador está a trocar letras que estão no seu baralho
             for letra in letras_para_troca:
-                if letra not in jogador_letras(jog) or jog['letras'].get(letra, 0) == 0:
+                if letra not in jogador_letras(jog):
                         validacao = False
                         break
             
             if not validacao:
                 continue
 
-            #Retirar as letras do baralho do jogador
+            #Retirar as letras do baralho do jogador         
             for l in letras_para_troca:
-                jog['letras'][l] -= 1
-                letras_troca.append(l)
-                if jog['letras'][l] == 0:
-                    del jog['letras'][l]
+                usa_letra(jog, l)
                       
             #Adicionar as letras ao jogador
             distribui_letras(jog, pilha, len(letras_para_troca))
@@ -1210,9 +1216,9 @@ def jogada_humano(tab, jog, vocab, pilha):
             tamanho_palavra = len(palavra)
 
             #Verificar se a palavra excede os limites do tabuleiro
-            if direcao == 'H' and tamanho_palavra + coluna <= 15:
+            if direcao == 'H' and tamanho_palavra + coluna - 1 <= 15:
                 padrao = obtem_padrao(tab, casa, (linha, coluna + tamanho_palavra - 1)) #Obter o padrão
-            elif direcao == 'V' and tamanho_palavra + linha <= 15:
+            elif direcao == 'V' and tamanho_palavra + linha - 1 <= 15:
                 padrao = obtem_padrao(tab, casa, (linha + tamanho_palavra - 1, coluna)) 
             else:
                 continue
@@ -1228,7 +1234,7 @@ def jogada_humano(tab, jog, vocab, pilha):
 
             #Atribuir os pontos pela jogada
             for letra in palavra:
-                jog['pontos'] += pontos[letra]
+                jog['pontos'] += PONTOS[letra]
             """pontuacao = obtem_pontos(vocab, palavra)
             #Se a palavra não for válida
             if pontuacao == 0:
@@ -1289,15 +1295,15 @@ def jogada_agente(tab, jog, vocab, pilha):
         casa = casas_s[i]
         direcao = direcoes_s[i]
 
-        palavra, pontos = procura_palavra_padrao(vocab, padrao, jogador_letras(jog), min_pontos)
+        palavra, pontos_pal = procura_palavra_padrao(vocab, padrao, jogador_letras(jog), min_pontos)
 
         if palavra != '':
             letras_usadas = joga_palavra(tab, palavra, casa, direcao, jogador_letras(jog), vocab, padrao)
 
             if letras_usadas != ():
-                if pontos > melhor_pontos:
+                if pontos_pal > melhor_pontos:
                     melhor_palavra = palavra
-                    melhor_pontos = pontos
+                    melhor_pontos = pontos_pal
                     melhor_casa = casa
                     melhor_direcao = direcao
                     melhor_letras_usadas = letras_usadas
@@ -1331,7 +1337,7 @@ def jogada_agente(tab, jog, vocab, pilha):
 
 def scrabble2(jogadores, nome_fich, seed): #tuplo, str, int
     #Validações
-    if type(jogadores) != tuple or len(jogadores) > 4 or len(jogadores) < 1 or type(nome_fich) != str or type(seed) != int or type(saco) != dict:
+    if type(jogadores) != tuple or len(jogadores) > 4 or len(jogadores) < 1 or type(nome_fich) != str or type(seed) != int or seed <= 0 or type(saco) != dict:
         raise ValueError('scrabble2: argumentos inválidos')
     
     #Obter a pilha 
@@ -1377,13 +1383,13 @@ def scrabble2(jogadores, nome_fich, seed): #tuplo, str, int
                 passes = 0
 
             tuplo_final = ()
-            if passes > len(lista_jogadores):
+            if passes >= len(lista_jogadores):
                 for jog in lista_jogadores:
-                    tuplo_final = tuplo_final + (jogador_pontos(jogador),) #Criar o tuplo com os pontos de cada jogador
+                    tuplo_final = tuplo_final + (jogador_pontos(jog),) #Criar o tuplo com os pontos de cada jogador
                 return tuplo_final
     
             baralho_jogador = criar_lista_letras(jogador_letras(jogador))
             if len(pilha) == 0 and len(baralho_jogador) == 0:
                 for jog in lista_jogadores:
-                    tuplo_final = tuplo_final + (jogador_pontos(jogador),) #Criar o tuplo com os pontos de cada jogador
+                    tuplo_final = tuplo_final + (jogador_pontos(jog),) #Criar o tuplo com os pontos de cada jogador
                 return tuplo_final 
