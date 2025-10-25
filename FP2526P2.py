@@ -517,22 +517,25 @@ def cria_vocabulario(v):
     
     """
     if not isinstance(v, (set, list, tuple)):
-        raise ValueError('cria_vocabulario1: argumento inválido')
+        raise ValueError('cria_vocabulario: argumento inválido')
     if len(v) < 1:
-        raise ValueError('cria_vocabulario2: argumento inválido')
+        raise ValueError('cria_vocabulario: argumento inválido')
     
     vocab = {}
     for palavra in v:
         if type(palavra) != str:
-            raise ValueError('cria_vocabulario3: argumento inválido')
+            raise ValueError('cria_vocabulario: argumento inválido')
         palavra = palavra.strip()     
         if len(palavra) < 2 or len(palavra) > 15:
-            raise ValueError('cria_vocabulario4: argumento inválido')
+            raise ValueError('cria_vocabulario: argumento inválido')
             #continue
         
+        if not palavra.isupper():
+            raise ValueError('cria_vocabulario: argumento inválido')
+
         for letra in palavra:
             if letra not in LETRAS:
-                raise ValueError('cria_vocabulario: argumento inválido')
+                continue
         
         comp = len(palavra)
         inicial = palavra[0]
