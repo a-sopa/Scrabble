@@ -84,14 +84,16 @@ def eh_casa(arg):
         return False 
     
     l, c = arg 
-    if type(l) == str or type(c) == str and (l.isdigit() and c.isdigit()):
-        l = int(l)
-        c = int(c)        
+    if type(l) == str and type(c) == str:
+        if l.isdigit() and c.isdigit():
+            l = int(l)
+            c = int(c)
+            return l > 0 and l <= 15 and c > 0 and c <= 15       
 
-    if type(l) != int or type(c) != int:
-        return False  
+    if type(l) == int and type(c) == int:
+        return l > 0 and l <= 15 and c > 0 and c <= 15 
     
-    return l > 0 and l <= 15 and c > 0 and c <= 15
+    return False
 
 
 def casas_iguais(c1,c2):
@@ -160,21 +162,25 @@ def incrementa_casa(c, d, s):
     coluna = obtem_col(c)
 
     if d == 'H':
-        coluna_final = coluna + s
+        casa_final = (linha, coluna + s)
+        """coluna_final = coluna + s
         if coluna_final > 15:
             return c
         casa_final = (linha, coluna_final)
         if eh_casa(casa_final):
-            return casa_final
+            return casa_final"""
     
     elif d == 'V':
-        linha_final = linha + s
+        casa_final = (linha + s, coluna)
+        """linha_final = linha + s
         if linha_final > 15:
             return c
         casa_final = (linha + s, coluna)
         if eh_casa(casa_final):
-            return casa_final
-        
+            return casa_final"""
+    if eh_casa(casa_final):
+        return casa_final
+
     return c
 
 
@@ -266,7 +272,7 @@ def cria_humano(nome):
     if nome == '':
         raise ValueError('cria_humano: argumento inválido')
     
-    return {'nome': nome, 'pontos': 0, 'letras': {}}
+    return {'nome': nome, 'pontos': 0, 'letras': {}, 'tipo' : 'humano'}
 
 
 def cria_agente(nivel):
@@ -281,10 +287,22 @@ def cria_agente(nivel):
     if nivel not in ('FACIL', 'MEDIO', 'DIFICIL'):
         raise ValueError('cria_agente: argumento inválido')
     
-    return {'nome': f'{nivel.upper()}', 'pontos': 0, 'letras': {}}
+    return {'nome': f'{nivel.upper()}', 'pontos': 0, 'letras': {}, 'tipo': 'agente'}
 
 
 #Seletores
+def tipo_jogador(j):
+    """
+    Reconhece o tipo de jogador:
+
+    Args:
+        j -> dicionário (jogador)
+    Return:
+        string -> 'agente' ou 'humano
+    """
+    return j['tipo']
+
+
 def jogador_identidade(j):
     """
     Recebe um jogador e indica o seu nome.
@@ -403,7 +421,7 @@ def eh_humano(arg):
     Return:
         bool -> True se arg for um jogador e o seu nome não corresponder a um nível de agente
     """
-    return eh_jogador(arg) and jogador_identidade(arg) not in ('FACIL', 'MEDIO', 'DIFICIL')
+    return eh_jogador(arg) and tipo_jogador(arg) == 'humano'
 
 
 def eh_agente(arg):
@@ -415,7 +433,7 @@ def eh_agente(arg):
     Return:
         bool -> True se arg for um jogador e o seu nome corresponder a um dos níveis de dificuldade
     """
-    return eh_jogador(arg) and jogador_identidade(arg) in ('FACIL', 'MEDIO', 'DIFICIL') 
+    return eh_jogador(arg) and tipo_jogador(arg) == 'agente'
 
 
 #Teste
@@ -429,7 +447,8 @@ def jogadores_iguais(j1, j2):
         bool -> True se ambos forem jogadores válidos e tiverem nome, pontos e baralho iguais
     """
     return (eh_jogador(j1) and eh_jogador(j2) and jogador_identidade(j1) == jogador_identidade(j2) 
-            and jogador_pontos(j1) == jogador_pontos(j2) and jogador_letras(j1) == jogador_letras(j2))
+            and jogador_pontos(j1) == jogador_pontos(j2) and jogador_letras(j1) == jogador_letras(j2)
+            and tipo_jogador(j1) == tipo_jogador(j2))
 
 
 #Transformador
@@ -498,22 +517,22 @@ def cria_vocabulario(v):
     
     """
     if not isinstance(v, (set, list, tuple)):
-        raise ValueError('cria_vocabulario: argumento inválido')
+        raise ValueError('cria_vocabulario1: argumento inválido')
     if len(v) < 1:
-        raise ValueError('cria_vocabulario: argumento inválido')
+        raise ValueError('cria_vocabulario2: argumento inválido')
     
     vocab = {}
     for palavra in v:
         if type(palavra) != str:
-            raise ValueError('cria_vocabulario: argumento inválido')
-        palavra = palavra.strip()
-        if 2 > len(palavra) or len(palavra)> 15:
-            raise ValueError('cria_vocabulario: argumento inválido')
+            raise ValueError('cria_vocabulario3: argumento inválido')
+        palavra = palavra.strip()     
+        if len(palavra) < 2 or len(palavra) > 15:
+            raise ValueError('cria_vocabulario4: argumento inválido')
+            #continue
+        
         for letra in palavra:
             if letra not in LETRAS:
                 raise ValueError('cria_vocabulario: argumento inválido')
-
-        #palavra = palavra.upper()    
         
         comp = len(palavra)
         inicial = palavra[0]
