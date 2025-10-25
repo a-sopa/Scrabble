@@ -80,7 +80,10 @@ def eh_casa(arg):
     Returns:
         bool: True se for uma casa válida, False caso contrário.
     """
-    if not isinstance(arg, (tuple, set, list, str)) or len(arg) != 2:
+    if type(arg) == str:
+        arg = str_para_casa(arg)
+
+    if not type(arg) == tuple or len(arg) != 2:
         return False 
     
     l, c = arg 
@@ -141,7 +144,9 @@ def str_para_casa(s):
     Return:
         tuplo (casa)
     """
-    return eval(s)
+    if type(s) == str:
+        if eh_casa(eval(s)):
+            return eval(s) 
 
 
 def incrementa_casa(c, d, s):
@@ -158,6 +163,9 @@ def incrementa_casa(c, d, s):
     if not eh_casa(c) or d not in ('H', 'V') or type(s) != int:
         return c
     
+    if type(c) == str:
+        c = str_para_casa(c)
+
     linha = obtem_lin(c)
     coluna = obtem_col(c)
 
@@ -533,9 +541,14 @@ def cria_vocabulario(v):
         if not palavra.isupper():
             raise ValueError('cria_vocabulario: argumento inválido')
 
+        palavra_valida = True
         for letra in palavra:
             if letra not in LETRAS:
-                continue
+                palavra_valida = False
+                break
+        
+        if not palavra_valida:
+            continue
         
         comp = len(palavra)
         inicial = palavra[0]
@@ -628,8 +641,8 @@ def testa_palavra_padrao(vocabulario, palavra, padrao, letras):
             break
     
     if not existe_no_vocab:
-        return False"""
-
+        return False
+"""
     #Criar uma lista com todas as letras disponíveis
     if isinstance(letras, list):
         letras_disponiveis = list(letras)
@@ -994,12 +1007,12 @@ def obtem_padrao(t, i, f):
     coluna_f = obtem_col(f) - 1
     res = ''
     if linha_i == linha_f: #Direção Horizontal
-        for i in range(coluna_i, coluna_f + 1):
-            res += t[linha_i][i]
+        for pos in range(coluna_i, coluna_f + 1):
+            res += t[linha_i][pos]
 
     if coluna_i == coluna_f: #Direção Vertical
-        for i in range(linha_i, linha_f + 1):
-            res += t[i][coluna_i]
+        for pos in range(linha_i, linha_f + 1):
+            res += t[pos][coluna_i]
     
     return res
 
@@ -1015,6 +1028,8 @@ def insere_palavra(t, c, d, p):
     Return:
         tabuleiro -> lista atualizada com a palavra inserida
     """
+    if type(c) == str:
+        c = str_para_casa(c)
     linha, coluna = obtem_lin(c), obtem_col(c)
     if d == 'H':
         for i in range(len(p)):
@@ -1075,10 +1090,10 @@ def obtem_subpadroes(t, i, f, l):
                 continue
                 
             #Obter a casa inicial do subpadrao
-            if i[0] == f[0]: #Horizontal
-                casa_inicio = (i[0], i[1] + inicio)
+            if obtem_lin(i) == obtem_lin(f): #Horizontal
+                casa_inicio = cria_casa(obtem_lin(i), obtem_col(i) + inicio)
             else: #Vertical
-                casa_inicio = (i[0] + inicio, i[1])
+                casa_inicio = cria_casa(obtem_lin(i) + inicio, obtem_col(i))
             
             subpadrao_lst.append(subpadrao)
             casa_i_tup.append(casa_inicio)
