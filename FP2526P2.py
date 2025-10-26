@@ -187,10 +187,14 @@ def incrementa_casa(c, d, s):
     linha, coluna = obtem_lin(c), obtem_col(c)
 
     if d == 'H': #Direção Horizontal
-        casa_final = (linha, coluna + s)
+        if coluna + s > DIMENSOES:
+            return c
+        casa_final = cria_casa(linha, coluna + s)
     
     else: #d == 'V' | Direção Vertical
-        casa_final = (linha + s, coluna)
+        if linha + s > DIMENSOES:
+            return c
+        casa_final = cria_casa(linha + s, coluna)
 
     #Verificar se a casa final é uma casa válida
     if eh_casa(casa_final):
@@ -806,16 +810,9 @@ def insere_letra(t,c,l):
     Return:
         t -> lista (tabuleiro atualizado)
     """
-    if not eh_casa(c) or type(t) != list:
-        return t
     
     linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1
-    casa = obtem_letra(t, c)
-
-    #Verificar se é possível inserir a letra
-    if casa == '.':
-        #Inserir a letra no tabuleiro
-        t[linha][coluna] = l
+    t[linha][coluna] = l
     return t
 
 
@@ -829,7 +826,7 @@ def eh_tabuleiro(arg):
     Return:
         bool -> True se for um tabuleiro válido, False caso contrário
     """
-    if not isinstance(arg, (list, tuple, dict)) or len(arg) != DIMENSOES:
+    if not isinstance(arg, (list)) or len(arg) != DIMENSOES:
         return False
     for linha in arg:
         if type(linha) != list or len(linha) != DIMENSOES:
@@ -957,7 +954,7 @@ def linha_para_str(numero_linha, conteudo_linha):
     return linha_str
     
 
-def tabuleiro_para_str(t): #3.2.7
+def tabuleiro_para_str(t): 
     """
     Transformador: Recebe a lista de listas da função cria_tabuleiro e representa o tabuleiro como uma string
                     contínua, com os números de linha e coluna e com as bordas
@@ -1003,18 +1000,20 @@ def obtem_padrao(t, i, f):
     Return:
         string -> padrão de letras entre as duas casas
     """
-    linha_i = obtem_lin(i) - 1
-    coluna_i = obtem_col(i) - 1
-    linha_f = obtem_lin(f) - 1
-    coluna_f = obtem_col(f) - 1
     res = ''
+    if not eh_tabuleiro(t) or not eh_casa(i) or not eh_casa(f) or casas_iguais(i, f):
+        return res
+
+    linha_i, coluna_i  = obtem_lin(i), obtem_col(i)
+    linha_f, coluna_f = obtem_lin(f), obtem_col(f)  
+    
     if linha_i == linha_f: #Direção Horizontal
         for pos in range(coluna_i, coluna_f + 1):
-            res += t[linha_i][pos]
+            res += obtem_letra(t, cria_casa(linha_i, pos))
 
     elif coluna_i == coluna_f: #Direção Vertical
         for pos in range(linha_i, linha_f + 1):
-            res += t[pos][coluna_i]
+            res += obtem_letra(t, cria_casa(pos, coluna_i))
     
     return res
 
