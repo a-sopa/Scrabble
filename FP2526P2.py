@@ -1203,6 +1203,7 @@ def baralha_saco(seed):
     Return:
         saco_ordenado -> lista (letras baralhadas)
     """
+    #Criar uma lista ordenada com as letras do saco
     letras_saco = criar_lista_letras(saco)
     saco_ordenado = ordena_letras(letras_saco)
     permuta_letras(saco_ordenado, seed)
