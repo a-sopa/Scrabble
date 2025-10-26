@@ -51,11 +51,15 @@ def obtem_col(casa):
     Return:
         coluna -> inteiro
     """
-    #Verifica se é casa
-    if eh_casa(casa):
-        #Obtem o valor da coluna da casa
-        coluna = casa[1]
-        return coluna
+    #Verificar o tipo de casa
+    if type(casa) == str:
+        casa = str_para_casa(casa)
+
+    #Verificar se é casa
+    if not eh_casa(casa):
+        return None
+        
+    return casa[1]
 
 
 def obtem_lin(casa):
@@ -67,11 +71,15 @@ def obtem_lin(casa):
     Return:
         linha -> inteiro
     """
+    #Verificar o tipo de casa
+    if type(casa) == str:
+        casa = str_para_casa(casa)
+
     #Verificar se é casa
-    if eh_casa(casa):
-        #Obtem o valor da linha da casa
-        linha = casa[0]
-        return linha
+    if not eh_casa(casa):
+        return None
+        
+    return casa[0]
 
 
 def eh_casa(arg):
@@ -150,11 +158,12 @@ def str_para_casa(s):
     Return:
         tuplo (casa)
     """    
-    if type(s) == str:
-        s = s.strip()
-        if eh_casa(eval(s)):
-            return eval(s)
-    return s 
+    if type(s) != str:
+        return s
+    s = s.strip()
+    if eh_casa(eval(s)):
+        return eval(s)
+    return s
 
 
 def incrementa_casa(c, d, s):
@@ -169,12 +178,8 @@ def incrementa_casa(c, d, s):
         tuplo (casa final)
     """
     if type(c) == str:
-        c_str = str_para_casa(c)
-        if eh_casa(c_str):
-            c = c_str
-        else:
-            return c
-
+        c = str_para_casa(c)
+        
     if not eh_casa(c) or d not in ('H', 'V') or type(s) != int or s <= 0:
         return c
     
@@ -217,19 +222,6 @@ def ordena_letras(conj_letras): #Função auxiliar
     return lista_ordenada #Retornar a lista ordenada
 
 
-def chave(palavra):
-    """
-    Função auxiliar que tem como objetivo substituir o Ç por um C de modo a facilitar a ordenação de palavras
-
-    Args: 
-        palavra -> string
-    Return:
-        string (Ç substituido temporariamente por Cz)
-    """
-    #Tratar o Ç como se fosse um Cz para aparecer depois do C mas antes do D
-    return palavra.replace('Ç', 'Cz')
-
-
 def criar_lista_letras(conj): #Função Auxiliar
     """
     Função para auxiliar a criação de uma lista com todas as letras disponíveis.
@@ -264,10 +256,9 @@ def criar_lista_letras(conj): #Função Auxiliar
     return lista_letras    
 
 
-#Construtores
 def cria_humano(nome):
     """
-    Cria um jogador humano com nome e baralho vazio.
+    Consetrutor: Cria um jogador humano com nome e baralho vazio.
     
     Args:
         nome -> string
@@ -285,7 +276,7 @@ def cria_humano(nome):
 
 def cria_agente(nivel):
     """
-    Cria um agente com nível de dificuldade.
+    Construtor: Cria um agente com nível de dificuldade.
     
     Args:
         nivel -> string ('FACIL', 'MEDIO' ou 'DIFICIL')
@@ -298,10 +289,9 @@ def cria_agente(nivel):
     return {'nome': f'{nivel.upper()}', 'pontos': 0, 'letras': {}, 'tipo': 'agente'}
 
 
-#Seletores
 def tipo_jogador(j):
     """
-    Reconhece o tipo de jogador:
+    Seletor: Reconhece o tipo de jogador:
 
     Args:
         j -> dicionário (jogador)
@@ -313,7 +303,7 @@ def tipo_jogador(j):
 
 def jogador_identidade(j):
     """
-    Recebe um jogador e indica o seu nome.
+    Seletor: Recebe um jogador e indica o seu nome.
     
     Args:
         j -> dicionário
@@ -326,7 +316,7 @@ def jogador_identidade(j):
 
 def jogador_pontos(j):
     """
-    Devolve os pontos atuais do jogador.
+    Seletor: Devolve os pontos atuais do jogador.
     
     Args:
         j -> dicionário
@@ -338,7 +328,7 @@ def jogador_pontos(j):
 
 def jogador_letras(j):
     """
-    Devolve as letras atuais do jogador.
+    Seletor: Devolve as letras atuais do jogador.
     
     Args:
         j -> dicionário
@@ -354,10 +344,9 @@ def jogador_letras(j):
     return letras_str.strip()
 
 
-#Modificadores
 def recebe_letra(j, l):
     """
-    Adiciona uma ocorrência da letra l ao baralho do jogador j.
+    Modificador: Adiciona uma ocorrência da letra l ao baralho do jogador j.
 
     Args:
         j -> jogador (TAD; tipicamente dicionário com chave 'letras') | l -> string 
@@ -373,7 +362,7 @@ def recebe_letra(j, l):
 
 def usa_letra(j,l):
     """
-    Remove uma ocorrência da letra l do baralho do jogador j.
+    Modificador: Remove uma ocorrência da letra l do baralho do jogador j.
 
     Args:
         j -> jogador (TAD; tipicamente dicionário com chave 'letras') | l -> string 
@@ -395,7 +384,7 @@ def usa_letra(j,l):
 
 def soma_pontos(j, p):
     """
-    Acrescenta p pontos ao total do jogador j.
+    Modificador: Acrescenta p pontos ao total do jogador j.
 
     Args:
         j -> jogador (TAD; tipicamente dicionário com chave 'pontos')
@@ -407,10 +396,9 @@ def soma_pontos(j, p):
     return j
 
 
-#Reconhecedores
 def eh_jogador(arg):
     """
-    Reconhecedor de tipo abstrato: indica se arg representa um jogador válido.
+    Reconhecedor: Indica se arg representa um jogador válido.
 
     Args:
         arg -> qualquer argumento
@@ -422,7 +410,7 @@ def eh_jogador(arg):
 
 def eh_humano(arg):
     """
-    Indica se o argumento é um jogador humano.
+    Reconhecedor: Indica se o argumento é um jogador humano.
 
     Args:
         arg -> argumento
@@ -434,7 +422,7 @@ def eh_humano(arg):
 
 def eh_agente(arg):
     """
-    Indica se o argumento é um agente (bot).
+    Reconhecedor: Indica se o argumento é um agente (bot).
 
     Args:
         arg -> jogador
@@ -444,10 +432,9 @@ def eh_agente(arg):
     return eh_jogador(arg) and tipo_jogador(arg) == 'agente'
 
 
-#Teste
 def jogadores_iguais(j1, j2):
     """
-    Verifica se dois jogadores (TAD) são iguais.
+    Teste: Verifica se dois jogadores (TAD) são iguais.
 
     Args:
         j1, j2 -> jogadores
@@ -459,10 +446,9 @@ def jogadores_iguais(j1, j2):
             and tipo_jogador(j1) == tipo_jogador(j2))
 
 
-#Transformador
 def jogador_para_str(j):
     """
-    Transforma o jogador (dicionário) numa representação (em string), para apresentar ao utilizador 
+    Transformador: Transforma o jogador (dicionário) numa representação (em string), para apresentar ao utilizador 
 
     Args:
         j -> jogador
@@ -483,7 +469,7 @@ def jogador_para_str(j):
 
 def distribui_letras(jogador, saco, num): #3.3.3
     """
-    Retira a última letra de uma lista e adiciona ao baralho do jogador.
+    FAN: Retira a última letra de uma lista e adiciona ao baralho do jogador.
 
     Argumentos:
         letras -> lista | jogador -> dicionário
@@ -505,6 +491,7 @@ def distribui_letras(jogador, saco, num): #3.3.3
 
     return jogador
 
+
 #---------------------------------------------------------------
 #TAD Vocabulário
 PONTOS = {
@@ -513,10 +500,22 @@ PONTOS = {
     'M': 1, 'N': 3, 'O': 1, 'P': 2, 'Q': 6, 'R': 1,
     'S': 1, 'T': 1, 'U': 1, 'V': 4, 'X': 8, 'Z': 8 }
 
-#Construtor
+def chave(palavra): #Função auxiliar
+    """
+    Função auxiliar que tem como objetivo substituir o Ç por um C de modo a facilitar a ordenação de palavras
+
+    Args: 
+        palavra -> string
+    Return:
+        string (Ç substituido temporariamente por Cz)
+    """
+    #Tratar o Ç como se fosse um Cz para aparecer depois do C mas antes do D
+    return palavra.replace('Ç', 'Cz')
+
+
 def cria_vocabulario(v):
     """
-    Cria o TAD vocabulario responsável por armazenar todas as palavras que irão ser aceites pelo jogo
+    Construtor: Cria o TAD vocabulario responsável por armazenar todas as palavras que irão ser aceites pelo jogo
 
     Args:
         v -> tuplo
@@ -568,7 +567,7 @@ def cria_vocabulario(v):
 
 def obtem_pontos(vocabulario, palavra):
     """
-    Obtém a pontuação de uma palavra segundo o vocabulário.
+    Seletor: Obtém a pontuação de uma palavra segundo o vocabulário.
 
     Args:
         vocabulario -> dicionário do TAD vocabulário | palavra -> string
@@ -590,6 +589,14 @@ def obtem_pontos(vocabulario, palavra):
 
 
 def obtem_palavras(vocabulario, comp, letra):
+    """
+    Seletor: Devolve um tuplo de pares que correspondem a todas as palavras com comprimento (comp) e primeira letra (letra), e a respetiva pontuação.
+
+    Args:
+        vocabulario -> dicionário do TAD vocabulário | comp -> int | letra -> strinh
+    Return:
+        res -> tuplo (palavra, pontuação)
+    """
     if comp not in vocabulario or letra not in vocabulario[comp]:
         return ()
     palavras = vocabulario[comp][letra]
@@ -615,6 +622,15 @@ def obtem_palavras(vocabulario, comp, letra):
 
 
 def testa_palavra_padrao(vocabulario, palavra, padrao, letras):
+    """ 
+    Teste: Esta função tem como objetivo testar se a palavra que o utilizador quer inserir no tabuleiro é válida.
+
+        Args:
+            vocabulario -> TAD | palavra -> string | padrao -> string | letras -> string 
+        Return:
+            True -> bool (se for válida) | False -> bool (se for inválida) 
+        
+    """
     #Verificar se a palavra e o padrao têm o mesmo tamanho
     if len(palavra) != len(padrao): 
         return False
@@ -640,19 +656,20 @@ def testa_palavra_padrao(vocabulario, palavra, padrao, letras):
             return False
     return True
 
-#Transformadores 
+
 def ficheiro_para_vocabulario(nome_fich):
     """
-    Lê palavras de um ficheiro e devolve um tuplo com palavras válidas para o vocabulário.
+    Transformador: Lê palavras de um ficheiro e devolve um tuplo com palavras válidas para o vocabulário.
 
     Args:
         nome_fich -> string (nome do ficheiro)
     Return:
         vocab -> tuplo de palavras válidas
     """
+    #Criar um set para armazenar as letras
     letras_validas = set(LETRAS)
     vocab = set()
-    with open(nome_fich, 'r') as f:
+    with open(nome_fich, 'r', encoding='utf-8') as f: #O encoding=utf-8 permite a leitura do caractér ç
         for linha in f:
             palavra = linha.upper().strip()
             if len(palavra) >= 2 and len(palavra) <= 15 and set(palavra).issubset(letras_validas):
@@ -663,7 +680,7 @@ def ficheiro_para_vocabulario(nome_fich):
 
 def vocabulario_para_str(vocabulario):
     """
-    Converte o vocabulário para uma string com todas as palavras ordenadas por comprimento e ordem lexicográfica.
+    Transformador: Converte o vocabulário para uma string com todas as palavras ordenadas por comprimento e ordem lexicográfica.
 
     Args:
         vocabulario -> (TAD vocabulário)
@@ -690,7 +707,7 @@ def vocabulario_para_str(vocabulario):
 
 def procura_palavra_padrao(vocabulario, padrao, letras, min_pontos):
     """
-    Procura a melhor palavra que encaixa num padrão, usando as letras disponíveis e respeitando a pontuação mínima.
+    FAN: Procura a melhor palavra que encaixa num padrão, usando as letras disponíveis e respeitando a pontuação mínima.
 
     Args:
         vocabulario -> dicionário (TAD vocabulário) | padrao -> string (padrão com letras e pontos)
@@ -743,11 +760,9 @@ def procura_palavra_padrao(vocabulario, padrao, letras, min_pontos):
 
 #-------------------------------------------------------
 #TAD Tabuleiro
-
-#Construtor
 def cria_tabuleiro():
     """
-    Cria uma lista de listas com (DIMENSOES) elementos e (DIMENSOES) listas que irá representar o tabuleiro de jogo
+    Construtor: Cria uma lista de listas com (DIMENSOES) elementos e (DIMENSOES) listas que irá representar o tabuleiro de jogo
 
     Args: Função sem parâmetros
     Return:
@@ -763,10 +778,9 @@ def cria_tabuleiro():
     return tab
 
 
-#Seletores
 def obtem_letra(t, c):
     """
-    Obtém a letra ou '.' presente numa casa específica do tabuleiro.
+    Seletor: Obtém a letra ou '.' presente numa casa específica do tabuleiro.
 
     Args:
         t -> lista (tabuleiro)
@@ -780,10 +794,9 @@ def obtem_letra(t, c):
     return t[linha][coluna]
 
 
-#Modificadores
 def insere_letra(t,c,l):
     """
-    Insere uma letra numa casa específica do tabuleiro.
+    Modificador: Insere uma letra numa casa específica do tabuleiro.
 
     Args:
         t -> lista (tabuleiro) | c -> tuplo (casa) | l -> string (letra a inserir)
@@ -798,10 +811,9 @@ def insere_letra(t,c,l):
     return t
 
 
-#Reconhecedores
 def eh_tabuleiro(arg):
     """
-    Verifica se o argumento representa um tabuleiro válido.
+    Reconhecedor: Verifica se o argumento representa um tabuleiro válido.
 
     Args:
         arg -> qualquer tipo
@@ -822,7 +834,7 @@ def eh_tabuleiro(arg):
 
 def eh_tabuleiro_vazio(arg):
     """
-    Verifica se o tabuleiro está completamente vazio (só contém '.').
+    Reconhecedor: Verifica se o tabuleiro está completamente vazio (só contém '.').
 
     Args:
         arg -> lista (tabuleiro)
@@ -841,7 +853,7 @@ def eh_tabuleiro_vazio(arg):
 
 def tabuleiros_iguais(t1,t2):
     """
-    Verifica se dois tabuleiros são iguais, casa a casa.
+    Reconhecedor: Verifica se dois tabuleiros são iguais, casa a casa.
 
     Args:
         t1 -> lista (tabuleiro 1) | t2 -> lista (tabuleiro 2)
@@ -858,9 +870,7 @@ def tabuleiros_iguais(t1,t2):
     return True
 
 
-#Transformadores
-
-#Funções Auxiliares para tabuleiro_para_str DIMENSOES -> 15
+#Funções Auxiliares para tabuleiro_para_str | DIMENSOES -> 15
 
 def borda_superior_inferior(DIMENSOES):
     """
@@ -941,8 +951,8 @@ def linha_para_str(numero_linha, conteudo_linha):
 
 def tabuleiro_para_str(t): #3.2.7
     """
-    Recebe a lista de listas da função cria_tabuleiro e representa o tabuleiro como uma string
-    contínua, com os números de linha e coluna e com as bordas
+    Transformador: Recebe a lista de listas da função cria_tabuleiro e representa o tabuleiro como uma string
+                    contínua, com os números de linha e coluna e com as bordas
     
     Argumentos:
         tab -> lista (tabuleiro)
@@ -977,7 +987,7 @@ def tabuleiro_para_str(t): #3.2.7
 #Funções de Alto Nível
 def obtem_padrao(t, i, f):
     """
-    Obtém o padrão de letras/espaços entre duas casas no tabuleiro, na horizontal ou vertical.
+    FAN: Obtém o padrão de letras/espaços entre duas casas no tabuleiro, na horizontal ou vertical.
 
     Args:
         t -> lista (tabuleiro) | i -> tuplo (casa inicial) | f -> tuplo (casa final)
@@ -1003,7 +1013,7 @@ def obtem_padrao(t, i, f):
 
 def insere_palavra(t, c, d, p):
     """
-    Insere uma palavra no tabuleiro a partir de uma casa e numa direção.
+    FAN: Insere uma palavra no tabuleiro a partir de uma casa e numa direção.
 
     Args:
         t -> lista (tabuleiro) | c -> tuplo (casa inicial)
@@ -1030,14 +1040,14 @@ def insere_palavra(t, c, d, p):
 
 def obtem_subpadroes(t, i, f, l):
     """
-    Função responsável por obter os subpadrões de um padrão específico do tabuleiro
+    FAN: Função responsável por obter os subpadrões de um padrão específico do tabuleiro
 
     Args:
         t -> lista (tabuleiro) | i -> tuplo (casa inicial) | f -> tuplo (casa final) | l -> inteiro
     Return
         subpadrao_lst -> tuplo | casas_i_tup -> tuplo
     """
-    if not eh_casa(i) or not eh_casa(f) or not eh_tabuleiro(t) or type(l) != int:
+    if not eh_casa(i) or not eh_casa(f) or casas_iguais(i,f) or not eh_tabuleiro(t) or type(l) != int:
         return ()
     
     #Obter o padrão
@@ -1093,7 +1103,7 @@ def obtem_subpadroes(t, i, f, l):
 
 def gera_todos_padroes(t, l):
     """
-    Gera todos os padrões de até um determinado comprimento (l)
+    FAN: Gera todos os padrões de até um determinado comprimento (l)
 
     Args:
         t -> lista (tabuleiro) | l -> inteiro (comprimento)
@@ -1110,6 +1120,7 @@ def gera_todos_padroes(t, l):
 
     #Linhas -> Horizontal
     for linha in range(1, DIMENSOES + 1):
+        #Criar casas iniciais e finais
         i = cria_casa(linha, 1)
         f = cria_casa(linha, DIMENSOES)
         subpads, casas_sub = obtem_subpadroes(t, i, f, l)
@@ -1119,6 +1130,7 @@ def gera_todos_padroes(t, l):
     
     #Colunas -> Vertical
     for coluna in range(1, DIMENSOES + 1):
+        #Criar casas iniciais e finais
         i = cria_casa(1, coluna)
         f = cria_casa(DIMENSOES, coluna)
         subpads, casas_sub = obtem_subpadroes(t, i, f, l)
@@ -1289,7 +1301,6 @@ def jogada_humano(tab, jog, vocab, pilha):
         bool -> True se o jogador jogou ou trocou de letras, False se passou a vez
     """
     while True:
-        letras_troca = []
         #Pedir uma jogada ao utilizador
         entrada = input(f'Jogada {jogador_identidade(jog)}: ')
         #Separar os vários passos da jogada numa lista
@@ -1363,10 +1374,6 @@ def jogada_humano(tab, jog, vocab, pilha):
                 padrao = obtem_padrao(tab, casa, (linha + tamanho_palavra - 1, coluna)) 
             else:
                 continue
-            
-            #Testar a validade da jogada
-            """if not testa_palavra_padrao(vocab, palavra, padrao, jog['letras']):
-                continue"""
 
             #Obter as letras usadas na palavra
             letras_usadas = joga_palavra(tab, palavra, casa, direcao, jog['letras'], vocab, padrao)
@@ -1374,13 +1381,13 @@ def jogada_humano(tab, jog, vocab, pilha):
                 continue
 
             #Atribuir os pontos pela jogada
-            for letra in palavra:
-                jog['pontos'] += PONTOS[letra]
-            """pontuacao = obtem_pontos(vocab, palavra)
-            #Se a palavra não for válida
-            if pontuacao == 0:
+            """ for letra in palavra:
+                jog['pontos'] += PONTOS[letra]"""
+            
+            pts = obtem_pontos(vocab, palavra)
+            if pts == 0:
                 continue
-            jog = soma_pontos(jog, pontuacao)"""
+            soma_pontos(jog, pts)
             
             #Inserir a palavra no tabuleiro
             insere_palavra(tab, casa, direcao, palavra)
