@@ -21,7 +21,7 @@ DIMENSOES = 15 #Dimensão do tabuleiro
 #TAD Casa
 def cria_casa(lin,col):
     """
-    Recebe dois valores inteiros (linha, coluna) referentes a um par de coordenadas e devolve
+    Construtor: Recebe dois valores inteiros (linha, coluna) referentes a um par de coordenadas e devolve
     um tuplo que contém as mesmas
     
     Args:
@@ -44,35 +44,39 @@ def cria_casa(lin,col):
 
 def obtem_col(casa):
     """
-    Recebe uma casa e devolve a coluna da casa.
+    Seletor: Recebe uma casa e devolve a coluna da casa.
 
     Args: 
         casa -> tuplo 
     Return:
         coluna -> inteiro
     """
+    #Verifica se é casa
     if eh_casa(casa):
+        #Obtem o valor da coluna da casa
         coluna = casa[1]
         return coluna
 
 
 def obtem_lin(casa):
     """
-    Recebe uma casa e devolve a linha da casa.
+    Seletor: Recebe uma casa e devolve a linha da casa.
 
     Args: 
         casa -> tuplo 
     Return:
         linha -> inteiro
     """
+    #Verificar se é casa
     if eh_casa(casa):
+        #Obtem o valor da linha da casa
         linha = casa[0]
         return linha
 
 
 def eh_casa(arg):
     """
-    Verifica se o argumento representa uma casa válida.
+    Reconhecedor: Verifica se o argumento representa uma casa válida.
 
     Args:
         arg (any): Valor a verificar.
@@ -101,7 +105,7 @@ def eh_casa(arg):
 
 def casas_iguais(c1,c2):
     """
-    Verifica se duas casas são iguais.
+    Teste: Verifica se duas casas são iguais.
     
     Args:
         c1 -> tuplo |c2 -> tuplo
@@ -122,14 +126,16 @@ def casas_iguais(c1,c2):
 
 def casa_para_str(c):
     """
-    Converte uma casa para a sua representação em string.
+    Transformador: Converte uma casa para a sua representação em string.
     
     Args:
         c -> tuplo (casa)
     Return:
         string (casa)
     """
+    #Verifica se é casa
     if eh_casa(c):
+        #Obtem linha e coluna
         linha = obtem_lin(c)
         coluna = obtem_col(c)
         return f'({linha},{coluna})'
@@ -137,7 +143,7 @@ def casa_para_str(c):
 
 def str_para_casa(s):
     """
-    Converte uma string no formato '(linha,coluna)' para uma casa.
+    Transformador: Converte uma string no formato '(linha,coluna)' para uma casa.
     
     Args:
         s -> string(casa)
@@ -153,7 +159,7 @@ def str_para_casa(s):
 
 def incrementa_casa(c, d, s):
     """
-    Calcula a casa resultante ao mover uma casa numa direção.
+    Função de alto nível: Calcula a casa resultante ao mover uma casa numa direção.
 
     Args:
         c -> tuplo (casa inicial) | d -> string ('H' ou 'V').
@@ -162,36 +168,24 @@ def incrementa_casa(c, d, s):
     Returns:
         tuplo (casa final)
     """
-    if not eh_casa(c) or d not in ('H', 'V') or not isinstance(s, (int, str)):
+    if type(c) == str:
+        c_str = str_para_casa(c)
+        if eh_casa(c_str):
+            c = c_str
+        else:
+            return c
+
+    if not eh_casa(c) or d not in ('H', 'V') or type(s) != int or s <= 0:
         return c
     
-    if type(s) == str:
-        if s.isdigit():
-            s = eval(s)
-
-    if type(c) == str:
-        c = str_para_casa(c)
-
-    linha = obtem_lin(c)
-    coluna = obtem_col(c)
+    linha, coluna = obtem_lin(c), obtem_col(c)
 
     if d == 'H':
         casa_final = (linha, coluna + s)
-        """coluna_final = coluna + s
-        if coluna_final > 15:
-            return c
-        casa_final = (linha, coluna_final)
-        if eh_casa(casa_final):
-            return casa_final"""
     
-    elif d == 'V':
+    else: #d == 'V'
         casa_final = (linha + s, coluna)
-        """linha_final = linha + s
-        if linha_final > 15:
-            return c
-        casa_final = (linha + s, coluna)
-        if eh_casa(casa_final):
-            return casa_final"""
+
     if eh_casa(casa_final):
         return casa_final
 
@@ -540,8 +534,10 @@ def cria_vocabulario(v):
     
     vocab = {}
     for palavra in v:
+        if type(palavra) != str:
+            raise ValueError('cria_vocabulario: argumento inválido')
         palavra = palavra.strip() 
-        if type(palavra) != str or not palavra.isupper() or not (1 < len(palavra) <= DIMENSOES):
+        if not palavra.isupper() or not (1 < len(palavra) <= DIMENSOES):
             raise ValueError('cria_vocabulario: argumento inválido')
            
         for letra in palavra:
@@ -1041,6 +1037,9 @@ def obtem_subpadroes(t, i, f, l):
     Return
         subpadrao_lst -> tuplo | casas_i_tup -> tuplo
     """
+    if not eh_casa(i) or not eh_casa(f) or not eh_tabuleiro(t) or type(l) != int:
+        return ()
+    
     #Obter o padrão
     padrao = obtem_padrao(t, i, f)
     comprimento = len(padrao)
@@ -1505,7 +1504,7 @@ def scrabble2(jogadores, nome_fich, seed):
             - saco não for um dicionário, ou se não houver letras suficientes para distribuir por todos os jogadores
     """
     #Validações
-    if type(jogadores) != tuple or len(jogadores) > 4 or len(jogadores) < 1 or type(nome_fich) != str or type(seed) != int or seed <= 0 or type(saco) != dict:
+    if type(jogadores) != tuple or not (2 <= len(jogadores) <= 4) or type(nome_fich) != str or nome_fich.strip() == '' or type(seed) != int or seed <= 0 or type(saco) != dict:
         raise ValueError('scrabble2: argumentos inválidos')
     
     #Obter a pilha 
