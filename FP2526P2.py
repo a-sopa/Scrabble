@@ -1006,7 +1006,7 @@ def obtem_padrao(t, i, f):
 
     linha_i, coluna_i  = obtem_lin(i), obtem_col(i)
     linha_f, coluna_f = obtem_lin(f), obtem_col(f)  
-    
+
     if linha_i == linha_f: #Direção Horizontal
         for pos in range(coluna_i, coluna_f + 1):
             res += obtem_letra(t, cria_casa(linha_i, pos))
@@ -1364,7 +1364,7 @@ def jogada_humano(tab, jog, vocab, pilha):
             #Converter a linha e coluna para inteiro
             linha, coluna = int(linha), int(coluna)
             
-            casa = (linha, coluna) #Criar o tuplo casa
+            casa = cria_casa(linha, coluna) #Criar o tuplo casa
 
             #Verificar a direção da jogada
             direcao = jogada[3]
@@ -1376,21 +1376,16 @@ def jogada_humano(tab, jog, vocab, pilha):
 
             #Verificar se a palavra excede os limites do tabuleiro
             if direcao == 'H' and tamanho_palavra + coluna - 1 <= 15:
-                padrao = obtem_padrao(tab, casa, (linha, coluna + tamanho_palavra - 1)) #Obter o padrão
+                padrao = obtem_padrao(tab, casa, cria_casa(linha, coluna + tamanho_palavra - 1)) #Obter o padrão
             elif direcao == 'V' and tamanho_palavra + linha - 1 <= 15:
-                padrao = obtem_padrao(tab, casa, (linha + tamanho_palavra - 1, coluna)) 
-            else:
-                continue
+                padrao = obtem_padrao(tab, casa, cria_casa(linha + tamanho_palavra - 1, coluna)) #Obter o padrão
 
             #Obter as letras usadas na palavra
-            letras_usadas = joga_palavra(tab, palavra, casa, direcao, jog['letras'], vocab, padrao)
+            letras_usadas = joga_palavra(tab, palavra, casa, direcao, jogador_letras(jog), vocab, padrao)
             if letras_usadas == ():
                 continue
 
-            #Atribuir os pontos pela jogada
-            """ for letra in palavra:
-                jog['pontos'] += PONTOS[letra]"""
-            
+            #Atribuir os pontos pela jogada          
             pts = obtem_pontos(vocab, palavra)
             if pts == 0:
                 continue
@@ -1433,7 +1428,7 @@ def jogada_agente(tab, jog, vocab, pilha):
 
     #Jogar
     padroes, casas, direcoes = gera_todos_padroes(tab, len(letras_agente))
-
+    #Determinar o nível de slicing aos padrões
     if jogador_identidade(jog) == 'FACIL':
         n = 100
     elif jogador_identidade(jog) == 'MEDIO':
@@ -1441,16 +1436,19 @@ def jogada_agente(tab, jog, vocab, pilha):
     elif jogador_identidade(jog) == 'DIFICIL':
         n = 10
 
+    #Executar o slicing
     padroes_s = padroes[::n]
     casas_s = casas[::n]
     direcoes_s = direcoes[::n]
-
+    
+    #Criar variáveis para armazenar a melhor jogada possível
     melhor_palavra = ''
     melhor_pontos = 0
     melhor_casa = None
     melhor_direcao = None
     melhor_letras_usadas = ()
 
+    #Testar todas as jogadas possíveis
     for i in range(0, len(padroes_s)):
         padrao = padroes_s[i]
 
@@ -1466,19 +1464,22 @@ def jogada_agente(tab, jog, vocab, pilha):
             letras_usadas = joga_palavra(tab, palavra, casa, direcao, jogador_letras(jog), vocab, padrao)
 
             if letras_usadas != ():
+                #Guardar apenas a melhor jogada nas variáveis
                 if pontos_pal > melhor_pontos:
                     melhor_palavra = palavra
                     melhor_pontos = pontos_pal
                     melhor_casa = casa
                     melhor_direcao = direcao
                     melhor_letras_usadas = letras_usadas
-        
+
+    #Se é possível jogar 
     if melhor_palavra != '':
-        insere_palavra(tab, melhor_casa, melhor_direcao, melhor_palavra)
-        soma_pontos(jog, melhor_pontos)
+        insere_palavra(tab, melhor_casa, melhor_direcao, melhor_palavra) #Colocar a palavra no tabuleiro 
+        soma_pontos(jog, melhor_pontos) #Atribuir os pontos ao agente
         for letra in melhor_letras_usadas:
-            usa_letra(jog, letra)
-        distribui_letras(jog, pilha, len(melhor_letras_usadas))
+            usa_letra(jog, letra) #Retirar as letras do baralho do agente
+        distribui_letras(jog, pilha, len(melhor_letras_usadas)) #Colocar novas letras no seu baralho
+        #Indicar qual foi a jogada realizada
         print(f'Jogada {jogador_identidade(jog)}: J {obtem_lin(melhor_casa)} {obtem_col(melhor_casa)} {melhor_direcao} {melhor_palavra}')
         return True
 
@@ -1486,16 +1487,19 @@ def jogada_agente(tab, jog, vocab, pilha):
     if len(pilha) >= 7:
         letras_troca = ''
         for let in jogador_letras(jog):
+            #Organizar as letras para troca, para depois ser mais fácil apresentá-las durante o jogo
             letras_troca += ' ' + let
             #Retirar as letras do baralho do jogador
             usa_letra(jog, let)
 
+        #Indicar qual foi a jogada realizada
         print(f'Jogada {jogador_identidade(jog)}: T{letras_troca}')
         #Acrescentar as letras novas
         distribui_letras(jog, pilha, 7)
         
         return True
-
+    
+    #Indicar que o agente passou a vez
     print(f'Jogada {jogador_identidade(jog)}: P')
     return False
 
@@ -1523,6 +1527,7 @@ def scrabble2(jogadores, nome_fich, seed):
     
     #Obter a pilha 
     pilha = baralha_saco(seed)
+    #Validar se é possível todos os jogadores obterem 7 letras no baralho
     if len(pilha) < 7*len(jogadores):
         raise ValueError('scrabble2: argumentos inválidos')
 
@@ -1531,10 +1536,12 @@ def scrabble2(jogadores, nome_fich, seed):
     for j in jogadores:
         if type(j) != str:
             raise ValueError('scrabble2: argumentos inválidos')
+        #Jogador Agente
         if j[0] == '@':
             if j[1:] not in ('FACIL', 'MEDIO', 'DIFICIL'):
                 raise ValueError('scrabble2: argumentos inválidos')
             player = cria_agente(j[1:])
+        #Jogador Humano
         else:
             player = cria_humano(j)
         distribui_letras(player, pilha, 7)
@@ -1550,29 +1557,36 @@ def scrabble2(jogadores, nome_fich, seed):
     passes = 0
     #Ciclo principal de jogo
     while True:
+        #Turno de cada jogador
         for jogador in lista_jogadores:
+            #Apresentar o tabuleiro
             print(tabuleiro_para_str(tab))
+            #Mostrar os jogadores
             for j in lista_jogadores:
                 print(jogador_para_str(j))
         
             res = None
+            #Realizar a jogada conforme o tipo de jogador
             if eh_humano(jogador):
                 res = jogada_humano(tab, jogador, vocab, pilha)
             
             elif eh_agente(jogador):
                 res = jogada_agente(tab, jogador, vocab, pilha)
             
+            #Se res == False, quer dizer que o jogador passou a vez
             if not res:
                 passes += 1
             else: 
                 passes = 0
-
+            
+            #Condições para o fim de jogo
             tuplo_final = ()
+            #Se todos os jogadores passarem a vez
             if passes >= len(lista_jogadores):
                 for jog in lista_jogadores:
                     tuplo_final = tuplo_final + (jogador_pontos(jog),) #Criar o tuplo com os pontos de cada jogador
                 return tuplo_final
-    
+            #Se não houver mais letras na pilha e o baralho do jogador terminar
             baralho_jogador = criar_lista_letras(jogador_letras(jogador))
             if len(pilha) == 0 and len(baralho_jogador) == 0:
                 for jog in lista_jogadores:
