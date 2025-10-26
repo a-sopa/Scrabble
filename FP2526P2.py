@@ -297,7 +297,7 @@ def cria_agente(nivel):
 
 def tipo_jogador(j):
     """
-    Seletor: Reconhece o tipo de jogador:
+    Seletor/Função Auxiliar: Reconhece o tipo de jogador:
 
     Args:
         j -> dicionário (jogador)
@@ -423,6 +423,7 @@ def eh_humano(arg):
     Return:
         bool -> True se arg for um jogador e o seu nome não corresponder a um nível de agente
     """
+    #Verificar o tipo de jogador
     return eh_jogador(arg) and tipo_jogador(arg) == 'humano'
 
 
@@ -466,7 +467,8 @@ def jogador_para_str(j):
     letras_str = ''
     for i in jogador_letras(j):
         letras_str += ' ' + i
-
+    
+    #Representar os jogadores em forma de string
     if eh_agente(j):
         return f'BOT({jogador_identidade(j)}) ({jogador_pontos(j):3d}):{letras_str}'
     elif eh_humano(j):
@@ -552,6 +554,7 @@ def cria_vocabulario(v):
         comp = len(palavra)
         inicial = palavra[0]
         pontuacao = 0
+        #Obter os pontos da palavra
         for letra in palavra:
             pontuacao += PONTOS[letra] 
 
@@ -561,7 +564,7 @@ def cria_vocabulario(v):
         if inicial not in vocab[comp]:
             vocab[comp][inicial] = []
         
-        vocab[comp][inicial].append((palavra, pontuacao))
+        vocab[comp][inicial].append((palavra, pontuacao)) #Colocar o tuplo no vocabulario
 
     #Ordenar as palavras por 1) Comprimento -> 2) Pontuação -> 3) Ordem lexicográfica
     for comp in vocab:
@@ -583,7 +586,7 @@ def obtem_pontos(vocabulario, palavra):
     if type(palavra) != str:
         return 0 
     
-    palavra = palavra.strip().upper()
+    palavra = palavra.strip().upper() #Retirar os espaços e colocar a palavra em maiúsculas
     comp = len(palavra)
     inicial = palavra[0]
     #Procurar a palavra no dicionário
@@ -678,6 +681,7 @@ def ficheiro_para_vocabulario(nome_fich):
     with open(nome_fich, 'r', encoding='utf-8') as f: #O encoding=utf-8 permite a leitura do caractér ç
         for linha in f:
             palavra = linha.upper().strip()
+            #Verificar se a palavra cumpre os requisitos de comprimento e letras válidas
             if len(palavra) >= 2 and len(palavra) <= 15 and set(palavra).issubset(letras_validas):
                 vocab.add(palavra)
 
@@ -1001,7 +1005,7 @@ def obtem_padrao(t, i, f):
         string -> padrão de letras entre as duas casas
     """
     res = ''
-    if not eh_tabuleiro(t) or not eh_casa(i) or not eh_casa(f) or casas_iguais(i, f):
+    if not eh_tabuleiro(t) or not eh_casa(i) or not eh_casa(f):
         return res
 
     linha_i, coluna_i  = obtem_lin(i), obtem_col(i)
@@ -1054,7 +1058,7 @@ def obtem_subpadroes(t, i, f, l):
     Return
         subpadrao_lst -> tuplo | casas_i_tup -> tuplo
     """
-    if not eh_casa(i) or not eh_casa(f) or casas_iguais(i,f) or not eh_tabuleiro(t) or type(l) != int:
+    if not eh_casa(i) or not eh_casa(f) or not eh_tabuleiro(t) or type(l) != int:
         return ()
     
     #Obter o padrão
@@ -1377,9 +1381,11 @@ def jogada_humano(tab, jog, vocab, pilha):
 
             #Verificar se a palavra excede os limites do tabuleiro
             if direcao == 'H' and tamanho_palavra + coluna - 1 <= 15:
-                padrao = obtem_padrao(tab, casa, cria_casa(linha, coluna + tamanho_palavra - 1)) #Obter o padrão
+                casa_f = cria_casa(linha, coluna + tamanho_palavra - 1)
+                padrao = obtem_padrao(tab, casa, casa_f) #Obter o padrão
             elif direcao == 'V' and tamanho_palavra + linha - 1 <= 15:
-                padrao = obtem_padrao(tab, casa, cria_casa(linha + tamanho_palavra - 1, coluna)) #Obter o padrão
+                casa_f = cria_casa(linha + tamanho_palavra - 1, coluna)
+                padrao = obtem_padrao(tab, casa, casa_f) #Obter o padrão
 
             #Obter as letras usadas na palavra
             letras_usadas = joga_palavra(tab, palavra, casa, direcao, jogador_letras(jog), vocab, padrao)
