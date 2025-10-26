@@ -160,10 +160,8 @@ def str_para_casa(s):
     """    
     if type(s) != str:
         return s
-    s = s.strip()
-    if eh_casa(eval(s)):
-        return eval(s)
-    return s
+    s = s.strip('()').split(',')
+    return cria_casa(int(s[0]), int(s[1]))
 
 
 def incrementa_casa(c, d, s):
@@ -177,20 +175,24 @@ def incrementa_casa(c, d, s):
     Returns:
         tuplo (casa final)
     """
+    #Verificar o tipo da casa
     if type(c) == str:
+        #Converter caso seja string
         c = str_para_casa(c)
-        
+    
+    #Validar as entradas de dados
     if not eh_casa(c) or d not in ('H', 'V') or type(s) != int or s <= 0:
         return c
     
     linha, coluna = obtem_lin(c), obtem_col(c)
 
-    if d == 'H':
+    if d == 'H': #Direção Horizontal
         casa_final = (linha, coluna + s)
     
-    else: #d == 'V'
+    else: #d == 'V' | Direção Vertical
         casa_final = (linha + s, coluna)
 
+    #Verificar se a casa final é uma casa válida
     if eh_casa(casa_final):
         return casa_final
 
@@ -804,8 +806,14 @@ def insere_letra(t,c,l):
     Return:
         t -> lista (tabuleiro atualizado)
     """
-    if eh_casa(c):
-        linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1
+    if not eh_casa(c) or type(t) != list:
+        return t
+    
+    linha, coluna = obtem_lin(c) - 1, obtem_col(c) - 1
+    casa = obtem_letra(t, c)
+
+    #Verificar se é possível inserir a letra
+    if casa == '.':
         #Inserir a letra no tabuleiro
         t[linha][coluna] = l
     return t
