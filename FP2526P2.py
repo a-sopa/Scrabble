@@ -528,35 +528,26 @@ def cria_vocabulario(v):
         v -> tuplo
     Return:
         vocab -> dicionário
+    Raises:
+        ValueError('cria_vocabulario: argumento inválido') se:
+        - v não for um tuplo ou estiver vazio ou tiver palavras repetidas;
+        - alguma palavra não for uma string com os caracteres maiusculos ou tiver letras ou dimensões inválidas
     
     """
-    if not isinstance(v, tuple):
-        raise ValueError('cria_vocabulario: argumento inválido')
-    if len(v) < 1 or len(v) != len(set(v)):
+    #Validações
+    if type(v) != tuple or len(v) == 0 or len(v) != len(set(v)):
         raise ValueError('cria_vocabulario: argumento inválido')
     
     vocab = {}
     for palavra in v:
-        if type(palavra) != str:
+        palavra = palavra.strip() 
+        if type(palavra) != str or not palavra.isupper() or not (1 < len(palavra) <= DIMENSOES):
             raise ValueError('cria_vocabulario: argumento inválido')
-        palavra = palavra.strip()     
-        if len(palavra) < 2 or len(palavra) > 15:
-            raise ValueError('cria_vocabulario: argumento inválido')
-            #continue
-        
-        if not palavra.isupper():
-            raise ValueError('cria_vocabulario: argumento inválido')
-
-        palavra_valida = True
+           
         for letra in palavra:
             if letra not in LETRAS:
                 raise ValueError('cria_vocabulario: argumento inválido')
-                """palavra_valida = False
-                break"""
-        
-        if not palavra_valida:
-            continue
-        
+            
         comp = len(palavra)
         inicial = palavra[0]
         pontuacao = 0
@@ -637,19 +628,7 @@ def testa_palavra_padrao(vocabulario, palavra, padrao, letras):
     #Verificar se o comprimento e a inicial existem no vocabulário
     if comp not in vocabulario or inicial not in vocabulario[comp]:
         return False
-
-    """if not any(palavra == item[0] for item in vocabulario[comp][inicial]):
-        return False"""
-
-    """existe_no_vocab = False
-    for i in range(len(vocabulario[comp][inicial])):
-        if palavra in vocabulario[comp][inicial][i][0]:
-            existe_no_vocab = True
-            break
     
-    if not existe_no_vocab:
-        return False
-"""
     #Criar uma lista com todas as letras disponíveis
     if isinstance(letras, list):
         letras_disponiveis = list(letras)
@@ -724,38 +703,40 @@ def procura_palavra_padrao(vocabulario, padrao, letras, min_pontos):
     Return:
         res -> tuplo (palavra, pontos) ou ('', 0) se não for encontrada palavra
     """
-    if type(vocabulario) != dict:
-        vocabulario = cria_vocabulario(vocabulario)
+    """if type(vocabulario) != dict:
+        vocabulario = cria_vocabulario(vocabulario)"""
     
     palavras_possiveis = []
     res = ('', 0)
     inicial = padrao[0]
     comprimento = len(padrao)
 
-    letras_para_testa = ordena_letras(letras)
+    letras_disponiveis = ordena_letras(letras)
 
     if inicial in LETRAS: #O padrão começa por uma letra 
-        palavras_possiveis = vocabulario.get(comprimento, {}).get(inicial, []) #Retorna o tuplo (palavra, pontos)
+        palavras_possiveis = obtem_palavras(vocabulario, comprimento, inicial) #vocabulario.get(comprimento, {}).get(inicial, []) #Retorna o tuplo (palavra, pontos)
         for palavra, pontos in palavras_possiveis:
             #A pontuação da palavra tem que ser maior do que min_pontos
             if pontos < min_pontos: 
                 continue
             #Verificar se a palavra pode ser colocada no padrão
-            if testa_palavra_padrao(vocabulario, palavra, padrao, letras_para_testa):
+            if testa_palavra_padrao(vocabulario, palavra, padrao, letras_disponiveis):
                 #Apenas armazenar a palavra com maior pontuação
                 if pontos > res[1]:
                     res = (palavra, pontos)
                 elif pontos == res[1] and (res[0] == '' or chave(palavra) < chave(res[0])):  # Ordem lexicográfica
                         res = (palavra, pontos)
-    
-    if inicial == '.':  # O padrão começa por um espaço livre
-        comps = vocabulario.get(comprimento, {})
-        for l in letras_para_testa:
-            palavras_possiveis = comps.get(l, [])
+
+    # Caso o padrão comece por espaço livre
+    if inicial == '.':  
+        #comps = vocabulario.get(comprimento, {})
+        for l in letras_disponiveis:
+            #palavras_possiveis = comps.get(l, [])
+            palavras_possiveis = obtem_palavras(vocabulario, comprimento, l)
             for palavra, pontos in palavras_possiveis:
                 if pontos < min_pontos: 
                     continue
-                if testa_palavra_padrao(vocabulario, palavra, padrao, letras_para_testa):
+                if testa_palavra_padrao(vocabulario, palavra, padrao, letras_disponiveis):
                     if pontos > res[1]:
                         res = (palavra, pontos)
                     elif pontos == res[1] and (res[0] == '' or chave(palavra) < chave(res[0])):  # Ordem lexicográfica
@@ -1017,7 +998,7 @@ def obtem_padrao(t, i, f):
         for pos in range(coluna_i, coluna_f + 1):
             res += t[linha_i][pos]
 
-    if coluna_i == coluna_f: #Direção Vertical
+    elif coluna_i == coluna_f: #Direção Vertical
         for pos in range(linha_i, linha_f + 1):
             res += t[pos][coluna_i]
     
