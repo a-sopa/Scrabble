@@ -1513,7 +1513,7 @@ def jogada_agente(tab, jog, vocab, pilha):
 
 def scrabble2(jogadores, nome_fich, seed): 
     """
-    Função principal que executa o jogo SCRABBLE2.
+    Função principal que executa o jogo SCRABBLE2
 
     Args:
         jogadores -> tuplo | nome_fich -> string | seed -> inteiro 
