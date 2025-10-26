@@ -130,8 +130,8 @@ def casa_para_str(c):
         string (casa)
     """
     if eh_casa(c):
-        linha = c[0]
-        coluna = c[1]
+        linha = obtem_lin(c)
+        coluna = obtem_col(c)
         return f'({linha},{coluna})'
 
 
@@ -143,10 +143,12 @@ def str_para_casa(s):
         s -> string(casa)
     Return:
         tuplo (casa)
-    """
+    """    
     if type(s) == str:
+        s = s.strip()
         if eh_casa(eval(s)):
-            return eval(s) 
+            return eval(s)
+    return s 
 
 
 def incrementa_casa(c, d, s):
@@ -160,9 +162,13 @@ def incrementa_casa(c, d, s):
     Returns:
         tuplo (casa final)
     """
-    if not eh_casa(c) or d not in ('H', 'V') or type(s) != int:
+    if not eh_casa(c) or d not in ('H', 'V') or not isinstance(s, (int, str)):
         return c
     
+    if type(s) == str:
+        if s.isdigit():
+            s = eval(s)
+
     if type(c) == str:
         c = str_para_casa(c)
 
@@ -524,9 +530,9 @@ def cria_vocabulario(v):
         vocab -> dicionário
     
     """
-    if not isinstance(v, (set, list, tuple)):
+    if not isinstance(v, tuple):
         raise ValueError('cria_vocabulario: argumento inválido')
-    if len(v) < 1:
+    if len(v) < 1 or len(v) != len(set(v)):
         raise ValueError('cria_vocabulario: argumento inválido')
     
     vocab = {}
@@ -544,8 +550,9 @@ def cria_vocabulario(v):
         palavra_valida = True
         for letra in palavra:
             if letra not in LETRAS:
-                palavra_valida = False
-                break
+                raise ValueError('cria_vocabulario: argumento inválido')
+                """palavra_valida = False
+                break"""
         
         if not palavra_valida:
             continue
@@ -1030,6 +1037,9 @@ def insere_palavra(t, c, d, p):
     """
     if type(c) == str:
         c = str_para_casa(c)
+    if type(p) != str:
+        return t
+    
     linha, coluna = obtem_lin(c), obtem_col(c)
     if d == 'H':
         for i in range(len(p)):
@@ -1055,8 +1065,8 @@ def obtem_subpadroes(t, i, f, l):
     comprimento = len(padrao)
 
     #Criar listas para armazenar o resultado final
-    subpadrao_lst = list()
-    casa_i_tup = list()
+    subpadrao_lst = []
+    casa_i_tup = []
 
     #Percorre cada posição possível como início do subpadrão
     for inicio in range(comprimento):
@@ -1120,8 +1130,8 @@ def gera_todos_padroes(t, l):
 
     #Linhas -> Horizontal
     for linha in range(1, DIMENSOES + 1):
-        i = (linha, 1)
-        f = (linha, DIMENSOES)
+        i = cria_casa(linha, 1)
+        f = cria_casa(linha, DIMENSOES)
         subpads, casas_sub = obtem_subpadroes(t, i, f, l)
         padroes.extend(subpads) #Colocar todos os subpadrões da linha
         casas.extend(casas_sub) #Colocar as casas iniciais correspondentes
@@ -1129,8 +1139,8 @@ def gera_todos_padroes(t, l):
     
     #Colunas -> Vertical
     for coluna in range(1, DIMENSOES + 1):
-        i = (1, coluna)
-        f = (DIMENSOES, coluna)
+        i = cria_casa(1, coluna)
+        f = cria_casa(DIMENSOES, coluna)
         subpads, casas_sub = obtem_subpadroes(t, i, f, l)
         padroes.extend(subpads) #Colocar todos os subpadrões da coluna
         casas.extend(casas_sub) #Colocar as casas iniciais correspondentes
